@@ -1,0 +1,23 @@
+{
+  "name": "sidekick",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": ["shared", "web", "server", "desktop"],
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "npm run dev -w web",
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build -w web",
+    "start": "npm run start -w server",
+    "desktop": "npm run start -w desktop",
+    "typecheck": "tsc -p web --noEmit && tsc -p server --noEmit",
+    "test": "vitest run",
+    "shots": "node scripts/shots.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@sidekick/server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": { "dev": "tsx watch src/index.ts", "start": "tsx src/index.ts" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "@hono/node-server": "^1.13.0",
+    "hono": "^4.6.0",
+    "web-push": "^3.6.7",
+    "ws": "^8.18.0",
+    "zod": "^3.23.0",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": { "@types/node": "^22.9.0", "@types/web-push": "^3.6.4", "@types/ws": "^8.5.13" }
+}
