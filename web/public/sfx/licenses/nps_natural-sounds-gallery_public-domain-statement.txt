@@ -1,0 +1,20 @@
+Source: https://www.nps.gov/subjects/sound/gallery.htm (retrieved 2026-11-10)
+
+Verbatim statement on that page:
+
+    The files are in the public domain and may be downloaded. Enjoy, and please give the appropriate credit.
+
+Recordings used from this library:
+
+  * https://www.nps.gov/subjects/sound/sounds-bee.htm
+      page text: Sound recording of a bee, Yosemite National Park, California. Credit / Author: NPS
+      used for: bee_buzz.mp3
+
+  * https://www.nps.gov/subjects/sound/sounds-pigfrog.htm
+      page text: Audio recording of a pig frog, Everglades National Park, Florida. Credit / Author: NPS
+      used for: frog_croak.mp3
+
+  * https://www.nps.gov/subjects/sound/sounds-spotted-owl.htm
+      page text: Sound recording of spotted owl, Yosemite National Park, California. Credit / Author: NPS
+      used for: owl_hoot.mp3
+

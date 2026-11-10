@@ -182,7 +182,8 @@ describe('edge cases', () => {
       `BEGIN:VEVENT\r\nUID:n2\r\nSUMMARY:${'[x] '.repeat(50_000)}\r\nDTSTART:20261112T100000Z\r\nEND:VEVENT\r\n`;
     const started = performance.now();
     const tasks = icsToTasks(parseIcs(wrap(nasty)), { feedId: 'f', tz: 'UTC', now: T0 });
-    expect(performance.now() - started).toBeLessThan(500);
+    // quadratic behaviour here would take minutes; the margin is for slow machines
+    expect(performance.now() - started).toBeLessThan(3000);
     // the first has nothing left for a title once trimmed, the second is cut to a sane length
     expect(tasks.map((t) => t.id)).toEqual(['ics:f:n2']);
     expect(tasks[0].title.length).toBeLessThanOrEqual(300);

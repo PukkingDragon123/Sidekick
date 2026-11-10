@@ -1,0 +1,12 @@
+Source: https://www.nps.gov/yell/learn/photosmultimedia/soundlibrary.htm (retrieved 2026-11-10)
+
+Verbatim statement on that page:
+
+    The files available here were recorded in the park and are in the public domain. They may be downloaded and used without limitation; however, please credit the "National Park Service" where appropriate.
+
+Recordings used from this library:
+
+  * https://www.nps.gov/yell/learn/photosmultimedia/sounds-soundscapes.htm
+      page text: Soundscape - Lower Geyser Basin (Strong Wind) A strong wind blows in the trees around the boardwalks of Lower Geyser Basin. Binaural recording, best heard through headphones. Credit / Author: NPS/Peter Comley Date created: 03/21/2015
+      used for: amb_wind.mp3
+

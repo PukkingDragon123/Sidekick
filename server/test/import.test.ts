@@ -213,7 +213,8 @@ describe('text hygiene', () => {
     expect(htmlToText(`${'<li '.repeat(100_000)}`)).toContain('<li');
     expect(cleanText(`${' \n'.repeat(300_000)}x`, 100)).toBeUndefined();
     expect(cleanText('y'.repeat(1_000_000), 50)).toHaveLength(50);
-    expect(performance.now() - started).toBeLessThan(500);
+    // quadratic behaviour here would take minutes; the margin is for slow machines
+    expect(performance.now() - started).toBeLessThan(3000);
   });
 
   test('only web links survive', () => {

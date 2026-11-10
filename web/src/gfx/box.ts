@@ -109,15 +109,17 @@ interface Job { part: number; b: BoxSpec; f: FaceDef; fi: number; M: THREE.Matri
 
 const axisLen = (a: Vec3, s: Vec3) => Math.abs(a[0]) * s[0] + Math.abs(a[1]) * s[1] + Math.abs(a[2]) * s[2];
 
-export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: number } = {}): Assembled {
+export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: number; density?: number } = {}): Assembled {
   const jobs: Job[] = [];
+  // texels per model pixel: 1 for the world, higher for characters that need finer detail
+  const dn = o.density ?? 1;
   parts.forEach((p, part) => {
     for (const b of p.boxes) {
       const M = boxMatrix(b);
       FACES.forEach((f, fi) => {
         if (b.skip && b.skip.includes(f.key)) return;
-        const tw = Math.max(1, Math.round(axisLen(f.u, b.size)));
-        const th = Math.max(1, Math.round(axisLen(f.v, b.size)));
+        const tw = Math.max(1, Math.round(axisLen(f.u, b.size) * dn));
+        const th = Math.max(1, Math.round(axisLen(f.v, b.size) * dn));
         jobs.push({ part, b, f, fi, M, tw, th, x: 0, y: 0 });
       });
     }
@@ -138,7 +140,7 @@ export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: numbe
 
   const acc = parts.map(() => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], sw: [] as number[], idx: [[], [], []] as number[][] }));
   const samples: number[] = [];
-  const every = o.sampleEvery ?? 3;
+  const every = o.sampleEvery ?? Math.round(3 * dn * dn);
   const min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
   let top = 0;
   const v = new THREE.Vector3();
@@ -304,8 +306,8 @@ export interface Rig {
 }
 
 /** Build an animatable model: one group per bone, positioned at its pivot. */
-export function buildRig(bones: BoneSpec[]): Rig {
-  const asm = assemble(bones.map((b) => ({ boxes: b.boxes, origin: b.pivot })));
+export function buildRig(bones: BoneSpec[], o: { density?: number } = {}): Rig {
+  const asm = assemble(bones.map((b) => ({ boxes: b.boxes, origin: b.pivot })), { density: o.density });
   const { mats } = makeMaterials(asm.tex);
   const root = new THREE.Group();
   const map: Record<string, THREE.Group> = {};

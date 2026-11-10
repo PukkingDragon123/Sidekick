@@ -1,0 +1,534 @@
+{
+  "version": 1,
+  "sounds": {
+    "ui_tap": {
+      "files": [
+        "ui_tap_1.mp3",
+        "ui_tap_2.mp3"
+      ],
+      "gain": 0.29,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_back": {
+      "files": [
+        "ui_back.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_open": {
+      "files": [
+        "ui_open.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_close": {
+      "files": [
+        "ui_close.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_tab": {
+      "files": [
+        "ui_tab.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_toggle": {
+      "files": [
+        "ui_toggle.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_error": {
+      "files": [
+        "ui_error.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_confirm": {
+      "files": [
+        "ui_confirm.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_type": {
+      "files": [
+        "ui_type.mp3"
+      ],
+      "gain": 0.47,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_page": {
+      "files": [
+        "ui_page.mp3"
+      ],
+      "gain": 0.75,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_check": {
+      "files": [
+        "ui_check.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_buy": {
+      "files": [
+        "ui_buy.mp3"
+      ],
+      "gain": 0.75,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_drag": {
+      "files": [
+        "ui_drag.mp3"
+      ],
+      "gain": 0.48,
+      "loop": false,
+      "category": "ui"
+    },
+    "ui_drop": {
+      "files": [
+        "ui_drop.mp3"
+      ],
+      "gain": 0.28,
+      "loop": false,
+      "category": "ui"
+    },
+    "notify_soft": {
+      "files": [
+        "notify_soft.mp3"
+      ],
+      "gain": 0.4,
+      "loop": false,
+      "category": "notify"
+    },
+    "notify_reminder": {
+      "files": [
+        "notify_reminder.mp3"
+      ],
+      "gain": 0.39,
+      "loop": false,
+      "category": "notify"
+    },
+    "notify_urgent": {
+      "files": [
+        "notify_urgent.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "notify"
+    },
+    "notify_message": {
+      "files": [
+        "notify_message.mp3"
+      ],
+      "gain": 0.58,
+      "loop": false,
+      "category": "notify"
+    },
+    "reward_coin": {
+      "files": [
+        "reward_coin_1.mp3",
+        "reward_coin_2.mp3",
+        "reward_coin_3.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_gem": {
+      "files": [
+        "reward_gem.mp3"
+      ],
+      "gain": 0.54,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_xp": {
+      "files": [
+        "reward_xp.mp3"
+      ],
+      "gain": 0.65,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_levelup": {
+      "files": [
+        "reward_levelup.mp3"
+      ],
+      "gain": 0.39,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_quest": {
+      "files": [
+        "reward_quest.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_unlock": {
+      "files": [
+        "reward_unlock.mp3"
+      ],
+      "gain": 0.66,
+      "loop": false,
+      "category": "reward"
+    },
+    "reward_streak": {
+      "files": [
+        "reward_streak.mp3"
+      ],
+      "gain": 0.49,
+      "loop": false,
+      "category": "reward"
+    },
+    "tp_out": {
+      "files": [
+        "tp_out.mp3"
+      ],
+      "gain": 0.4,
+      "loop": false,
+      "category": "teleport"
+    },
+    "tp_in": {
+      "files": [
+        "tp_in.mp3"
+      ],
+      "gain": 0.36,
+      "loop": false,
+      "category": "teleport"
+    },
+    "tp_shimmer": {
+      "files": [
+        "tp_shimmer.mp3"
+      ],
+      "gain": 0.58,
+      "loop": false,
+      "category": "teleport"
+    },
+    "step_grass": {
+      "files": [
+        "step_grass_1.mp3",
+        "step_grass_2.mp3",
+        "step_grass_3.mp3",
+        "step_grass_4.mp3",
+        "step_grass_5.mp3"
+      ],
+      "gain": 0.59,
+      "loop": false,
+      "category": "step"
+    },
+    "step_dirt": {
+      "files": [
+        "step_dirt_1.mp3",
+        "step_dirt_2.mp3",
+        "step_dirt_3.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "step"
+    },
+    "step_wood": {
+      "files": [
+        "step_wood_1.mp3",
+        "step_wood_2.mp3",
+        "step_wood_3.mp3"
+      ],
+      "gain": 0.32,
+      "loop": false,
+      "category": "step"
+    },
+    "step_stone": {
+      "files": [
+        "step_stone_1.mp3",
+        "step_stone_2.mp3",
+        "step_stone_3.mp3"
+      ],
+      "gain": 0.38,
+      "loop": false,
+      "category": "step"
+    },
+    "rustle_grass": {
+      "files": [
+        "rustle_grass_1.mp3",
+        "rustle_grass_2.mp3",
+        "rustle_grass_3.mp3"
+      ],
+      "gain": 0.46,
+      "loop": false,
+      "category": "foliage"
+    },
+    "rustle_bush": {
+      "files": [
+        "rustle_bush_1.mp3",
+        "rustle_bush_2.mp3"
+      ],
+      "gain": 0.47,
+      "loop": false,
+      "category": "foliage"
+    },
+    "amb_wind": {
+      "files": [
+        "amb_wind.mp3"
+      ],
+      "gain": 0.35,
+      "loop": true,
+      "category": "ambience"
+    },
+    "amb_birds": {
+      "files": [
+        "amb_birds.mp3"
+      ],
+      "gain": 0.4,
+      "loop": true,
+      "category": "ambience"
+    },
+    "amb_night": {
+      "files": [
+        "amb_night.mp3"
+      ],
+      "gain": 0.35,
+      "loop": true,
+      "category": "ambience"
+    },
+    "amb_stream": {
+      "files": [
+        "amb_stream.mp3"
+      ],
+      "gain": 0.35,
+      "loop": true,
+      "category": "ambience"
+    },
+    "amb_fire": {
+      "files": [
+        "amb_fire.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true,
+      "category": "ambience"
+    },
+    "bird_chirp": {
+      "files": [
+        "bird_chirp_1.mp3",
+        "bird_chirp_2.mp3",
+        "bird_chirp_3.mp3",
+        "bird_chirp_4.mp3"
+      ],
+      "gain": 0.36,
+      "loop": false,
+      "category": "nature"
+    },
+    "bird_flap": {
+      "files": [
+        "bird_flap_1.mp3",
+        "bird_flap_2.mp3"
+      ],
+      "gain": 0.58,
+      "loop": false,
+      "category": "nature"
+    },
+    "owl_hoot": {
+      "files": [
+        "owl_hoot.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "nature"
+    },
+    "frog_croak": {
+      "files": [
+        "frog_croak.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "nature"
+    },
+    "bee_buzz": {
+      "files": [
+        "bee_buzz.mp3"
+      ],
+      "gain": 0.4,
+      "loop": false,
+      "category": "nature"
+    },
+    "water_plop": {
+      "files": [
+        "water_plop_1.mp3",
+        "water_plop_2.mp3"
+      ],
+      "gain": 0.42,
+      "loop": false,
+      "category": "nature"
+    },
+    "eat_crunch": {
+      "files": [
+        "eat_crunch_1.mp3",
+        "eat_crunch_2.mp3",
+        "eat_crunch_3.mp3"
+      ],
+      "gain": 0.79,
+      "loop": false,
+      "category": "pet"
+    },
+    "eat_gulp": {
+      "files": [
+        "eat_gulp_1.mp3",
+        "eat_gulp_2.mp3"
+      ],
+      "gain": 0.33,
+      "loop": false,
+      "category": "pet"
+    },
+    "pet_jump": {
+      "files": [
+        "pet_jump.mp3"
+      ],
+      "gain": 0.72,
+      "loop": false,
+      "category": "pet"
+    },
+    "pet_land": {
+      "files": [
+        "pet_land.mp3"
+      ],
+      "gain": 0.45,
+      "loop": false,
+      "category": "pet"
+    },
+    "pet_happy": {
+      "files": [
+        "pet_happy_1.mp3",
+        "pet_happy_2.mp3"
+      ],
+      "gain": 0.33,
+      "loop": false,
+      "category": "pet"
+    },
+    "pet_purr": {
+      "files": [
+        "pet_purr.mp3"
+      ],
+      "gain": 0.33,
+      "loop": false,
+      "category": "pet"
+    },
+    "pet_snore": {
+      "files": [
+        "pet_snore.mp3"
+      ],
+      "gain": 0.56,
+      "loop": false,
+      "category": "pet"
+    },
+    "voice_a": {
+      "files": [
+        "voice_a.mp3"
+      ],
+      "gain": 0.83,
+      "loop": false,
+      "category": "voice"
+    },
+    "voice_b": {
+      "files": [
+        "voice_b.mp3"
+      ],
+      "gain": 0.52,
+      "loop": false,
+      "category": "voice"
+    },
+    "voice_c": {
+      "files": [
+        "voice_c.mp3"
+      ],
+      "gain": 0.3,
+      "loop": false,
+      "category": "voice"
+    },
+    "voice_d": {
+      "files": [
+        "voice_d.mp3"
+      ],
+      "gain": 0.39,
+      "loop": false,
+      "category": "voice"
+    },
+    "voice_e": {
+      "files": [
+        "voice_e.mp3"
+      ],
+      "gain": 0.41,
+      "loop": false,
+      "category": "voice"
+    },
+    "place_item": {
+      "files": [
+        "place_item.mp3"
+      ],
+      "gain": 0.37,
+      "loop": false,
+      "category": "garden"
+    },
+    "pickup_item": {
+      "files": [
+        "pickup_item.mp3"
+      ],
+      "gain": 0.3,
+      "loop": false,
+      "category": "garden"
+    },
+    "rotate_item": {
+      "files": [
+        "rotate_item.mp3"
+      ],
+      "gain": 0.34,
+      "loop": false,
+      "category": "garden"
+    },
+    "plant_dig": {
+      "files": [
+        "plant_dig.mp3"
+      ],
+      "gain": 0.83,
+      "loop": false,
+      "category": "garden"
+    },
+    "timer_start": {
+      "files": [
+        "timer_start.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false,
+      "category": "timer"
+    },
+    "timer_done": {
+      "files": [
+        "timer_done.mp3"
+      ],
+      "gain": 0.4,
+      "loop": false,
+      "category": "timer"
+    }
+  }
+}
