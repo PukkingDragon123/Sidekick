@@ -41,8 +41,17 @@ export interface Ctx {
   syncing: Map<string, Promise<unknown>>;
 }
 
-/** A short description of an error for logs: never the message of a provider response or a URL. */
+/**
+ * A short label for an error in logs: its class and, when there is one, its machine code
+ * (ECONNREFUSED, ENOTFOUND, ...). Never the message: messages of network and provider errors
+ * can carry URLs, and feed URLs and query strings are credentials.
+ */
 export function errorKind(err: unknown): string {
-  if (err instanceof Error) return err.name === 'Error' ? err.message.slice(0, 120) : err.name;
-  return 'unknown error';
+  if (!(err instanceof Error)) return 'unknown error';
+  const code = (e: unknown): string | null => {
+    const c = (e as { code?: unknown } | null | undefined)?.code;
+    return typeof c === 'string' && /^[A-Za-z0-9_]{1,40}$/.test(c) ? c : null;
+  };
+  const found = code(err) ?? code(err.cause);
+  return found ? `${err.name} ${found}` : err.name;
 }

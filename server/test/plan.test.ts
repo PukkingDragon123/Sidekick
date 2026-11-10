@@ -96,9 +96,10 @@ describe('POST /api/ai/plan', () => {
     expect(body).not.toHaveProperty('tool_choice');
     expect(body).not.toHaveProperty('output_format');
 
+    // only the rules every account shares are marked for caching
     expect(body.system).toEqual([
       { type: 'text', text: PLAN_RULES, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: expect.stringContaining('Your name is Ember'), cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: expect.stringContaining('Your name is Ember') },
     ]);
     expect(body.messages).toHaveLength(1);
     const ask: string = body.messages[0].content;

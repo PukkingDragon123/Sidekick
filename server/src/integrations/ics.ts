@@ -287,7 +287,7 @@ export function icsDateToMs(date: IcsDate, fallbackTz: string): number {
 
 /** Canvas writes "Essay draft [ENG 101]"; Moodle writes "Essay draft is due" with the course in CATEGORIES. */
 function titleAndCourse(item: IcsItem): { title: string; course: string | undefined } {
-  let title = item.summary.replace(/\s+/g, ' ').trim();
+  let title = item.summary.slice(0, 1000).replace(/\s+/g, ' ').trim();
   let course: string | undefined;
   const bracket = /^(.+?)\s*\[([^\[\]]{1,120})\]$/.exec(title);
   if (bracket) {
@@ -316,7 +316,7 @@ export function icsToTasks(calendar: IcsCalendar, opts: { feedId: string; tz: st
 
     const { title, course } = titleAndCourse(item);
     if (!title) continue;
-    const rawDescription = item.description && /<[a-z][^>]*>/i.test(item.description) ? htmlToText(item.description) : item.description;
+    const rawDescription = item.description && /<[a-z][^<>]*>/i.test(item.description) ? htmlToText(item.description) : item.description;
     const description = cleanText(rawDescription, 2000);
     const externalId = compactUid(item.recurrenceId ? `${item.uid}:${item.recurrenceId}` : item.uid);
     const task: ImportedTask = {

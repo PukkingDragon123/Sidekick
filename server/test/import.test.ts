@@ -29,7 +29,7 @@ const item = (over: Partial<ImportedTask> = {}): ImportedTask => ({
 describe('applyImport', () => {
   test('a new item becomes a task; importing it again changes nothing', () => {
     const state = makeState();
-    expect(applyImport(state, [item()], T0)).toEqual({ added: 1, updated: 0 });
+    expect(applyImport(state, [item()], T0)).toEqual({ added: 1, updated: 0, skipped: 0 });
     expect(state.tasks).toEqual([
       {
         id: 'google:c1:w1', source: 'google', externalId: 'c1:w1', title: 'Essay: The Giver', course: 'English 9',
@@ -38,7 +38,7 @@ describe('applyImport', () => {
       },
     ]);
     const before = structuredClone(state.tasks);
-    expect(applyImport(state, [item()], T0 + HOUR)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [item()], T0 + HOUR)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks).toEqual(before);
   });
 
@@ -60,7 +60,7 @@ describe('applyImport', () => {
       title: 'Essay: The Giver (final)', course: 'English 9 Honors', description: 'Six paragraphs now.',
       due: T0 + 5 * DAY, url: 'https://classroom.google.com/c/c1/a/w1/details?v=2', points: 120, kind: 'essay',
     });
-    expect(applyImport(state, [changed], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 1 });
+    expect(applyImport(state, [changed], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 1, skipped: 0 });
     expect(state.tasks[0]).toEqual({
       id: 'google:c1:w1', source: 'google', externalId: 'c1:w1',
       // from the source
@@ -78,13 +78,13 @@ describe('applyImport', () => {
   test('done flips to true when the source says submitted, and never back', () => {
     const state = makeState();
     applyImport(state, [item()], T0);
-    expect(applyImport(state, [item({ doneAtSource: true })], T0 + HOUR)).toEqual({ added: 0, updated: 1 });
+    expect(applyImport(state, [item({ doneAtSource: true })], T0 + HOUR)).toEqual({ added: 0, updated: 1, skipped: 0 });
     expect(state.tasks[0]).toMatchObject({ done: true, doneAt: T0 + HOUR });
     expect(state.tasks[0]).not.toHaveProperty('rewarded');
 
     // teacher hands it back for revision: the task stays done, the reward flag is the game's business
     state.tasks[0].rewarded = true;
-    expect(applyImport(state, [item({ doneAtSource: false })], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [item({ doneAtSource: false })], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks[0]).toMatchObject({ done: true, doneAt: T0 + HOUR, rewarded: true });
   });
 
@@ -92,7 +92,7 @@ describe('applyImport', () => {
     const state = makeState();
     applyImport(state, [item()], T0);
     Object.assign(state.tasks[0], { done: true, doneAt: T0 + HOUR, rewarded: true, updatedAt: T0 + HOUR });
-    expect(applyImport(state, [item()], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [item()], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks[0]).toMatchObject({ done: true, doneAt: T0 + HOUR, rewarded: true, updatedAt: T0 + HOUR });
   });
 
@@ -110,7 +110,7 @@ describe('applyImport', () => {
     const merged = mergeState(server, device, T0 + 3 * HOUR);
     expect(merged.tasks[0].notes).toBe('ask Ms. Ito about sources');
     // ...and the next import lays the source's deadline back over it: both edits are there
-    expect(applyImport(merged, [item({ due: T0 + 6 * DAY })], T0 + 4 * HOUR)).toEqual({ added: 0, updated: 1 });
+    expect(applyImport(merged, [item({ due: T0 + 6 * DAY })], T0 + 4 * HOUR)).toEqual({ added: 0, updated: 1, skipped: 0 });
     expect(merged.tasks[0]).toMatchObject({ notes: 'ask Ms. Ito about sources', due: T0 + 6 * DAY });
 
     // a device with no edits of its own simply receives the imported change
@@ -123,7 +123,7 @@ describe('applyImport', () => {
     const state = makeState();
     applyImport(state, [item()], T0);
     Object.assign(state.tasks[0], { deleted: true, updatedAt: T0 + HOUR });
-    expect(applyImport(state, [item({ title: 'Renamed' })], T0 + DAY)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [item({ title: 'Renamed' })], T0 + DAY)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks[0]).toMatchObject({ deleted: true, title: 'Essay: The Giver', updatedAt: T0 + HOUR });
 
     // shared mergeTasks drops tombstones after 30 days; ours is refreshed before that can happen
@@ -131,17 +131,17 @@ describe('applyImport', () => {
     expect(state.tasks[0]).toMatchObject({ deleted: true, updatedAt: T0 + 25 * DAY });
     const later = mergeState(state, structuredClone(state), T0 + 40 * DAY);
     expect(later.tasks).toHaveLength(1);
-    expect(applyImport(later, [item()], T0 + 40 * DAY)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(later, [item()], T0 + 40 * DAY)).toEqual({ added: 0, updated: 0, skipped: 0 });
   });
 
   test('undefined means "the source did not say": the field is kept; null due means "no deadline now"', () => {
     const state = makeState();
     applyImport(state, [item()], T0);
     const sparse = item({ course: undefined, description: undefined, url: undefined, points: undefined, due: undefined });
-    expect(applyImport(state, [sparse], T0 + HOUR)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [sparse], T0 + HOUR)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks[0]).toMatchObject({ course: 'English 9', description: 'Five paragraphs.', points: 100, due: T0 + 3 * DAY });
 
-    expect(applyImport(state, [item({ due: null })], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 1 });
+    expect(applyImport(state, [item({ due: null })], T0 + 2 * HOUR)).toEqual({ added: 0, updated: 1, skipped: 0 });
     expect(state.tasks[0]).not.toHaveProperty('due');
   });
 
@@ -154,11 +154,34 @@ describe('applyImport', () => {
     expect(isStale(item({ due: null }), T0)).toBe(false);
 
     const state = makeState();
-    expect(applyImport(state, [item({ due: T0 - 40 * DAY })], T0)).toEqual({ added: 0, updated: 0 });
+    expect(applyImport(state, [item({ due: T0 - 40 * DAY })], T0)).toEqual({ added: 0, updated: 0, skipped: 0 });
     expect(state.tasks).toEqual([]);
     // ...but a task the student already has keeps receiving updates however old it gets
     applyImport(state, [item({ due: T0 - 1 * DAY })], T0);
-    expect(applyImport(state, [item({ due: T0 - 1 * DAY, doneAtSource: true })], T0 + 30 * DAY)).toEqual({ added: 0, updated: 1 });
+    expect(applyImport(state, [item({ due: T0 - 1 * DAY, doneAtSource: true })], T0 + 30 * DAY)).toEqual({ added: 0, updated: 1, skipped: 0 });
+  });
+
+  test('one source holds at most 300 open tasks: the nearest deadlines get in, the rest waits', () => {
+    const many = Array.from({ length: 400 }, (_, i) =>
+      item({ id: `ics:feedA:e${i}`, source: 'ics', externalId: `feedA:e${i}`, title: `Event ${i}`, due: T0 + (400 - i) * HOUR }),
+    );
+    const state = makeState();
+    expect(applyImport(state, many, T0)).toEqual({ added: 300, updated: 0, skipped: 100 });
+    // the 300 kept are the 300 soonest (the feed listed them latest-first)
+    const kept = new Set(state.tasks.map((t) => t.id));
+    expect(kept.has('ics:feedA:e399')).toBe(true);
+    expect(kept.has('ics:feedA:e100')).toBe(true);
+    expect(kept.has('ics:feedA:e99')).toBe(false);
+
+    // another feed and another provider have places of their own
+    const other = [item({ id: 'ics:feedB:x', source: 'ics', externalId: 'feedB:x' }), item()];
+    expect(applyImport(state, other, T0)).toEqual({ added: 2, updated: 0, skipped: 0 });
+    // work that is already handed in does not take a place
+    expect(applyImport(state, [item({ id: 'ics:feedA:done', source: 'ics', externalId: 'feedA:done', doneAtSource: true })], T0)).toEqual({ added: 1, updated: 0, skipped: 0 });
+
+    // as the student finishes things, the waiting ones move in
+    for (const t of state.tasks.slice(0, 40)) Object.assign(t, { done: true, doneAt: T0 + HOUR, updatedAt: T0 + HOUR });
+    expect(applyImport(state, many, T0 + 2 * HOUR)).toEqual({ added: 40, updated: 0, skipped: 60 });
   });
 
   test('manual tasks and other sources are never touched', () => {
@@ -182,6 +205,15 @@ describe('text hygiene', () => {
     expect(cleanText('x'.repeat(50), 10)).toBe(`${'x'.repeat(9)}…`);
     expect(cleanText('   ', 10)).toBeUndefined();
     expect(cleanText(42, 10)).toBeUndefined();
+  });
+
+  test('hostile markup costs linear time', () => {
+    const started = performance.now();
+    expect(htmlToText('<'.repeat(400_000))).toHaveLength(20_000);
+    expect(htmlToText(`${'<li '.repeat(100_000)}`)).toContain('<li');
+    expect(cleanText(`${' \n'.repeat(300_000)}x`, 100)).toBeUndefined();
+    expect(cleanText('y'.repeat(1_000_000), 50)).toHaveLength(50);
+    expect(performance.now() - started).toBeLessThan(500);
   });
 
   test('only web links survive', () => {

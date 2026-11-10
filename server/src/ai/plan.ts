@@ -11,12 +11,14 @@ import type { Ctx } from '../context.ts';
 import { HttpError } from '../http.ts';
 import { safeTz } from '../tz.ts';
 import { dailyCap, resolveNow, usageDay } from './chat.ts';
-import { baseParams, describeAiError } from './client.ts';
+import { baseParams, describeAiError, usageLine } from './client.ts';
 import { planCandidates, planRequest, planSystem } from './prompt.ts';
 import { clampMinutes } from './tools.ts';
 
 /** Thinking at medium effort plus up to fifteen detailed items. */
 const MAX_TOKENS = 32_000;
+/** Per attempt; the SDK retries rate limits and server errors twice on top of this. */
+const REQUEST_TIMEOUT_MS = 180_000;
 
 // Kept static: the API compiles a grammar per schema and caches it, so the schema must not
 // vary per request (which is why task ids are checked afterwards instead of being an enum).
@@ -99,15 +101,19 @@ export function toPlan(raw: unknown, tasks: Task[], now: number): Plan {
 
 async function aiPlan(ctx: Ctx, ai: Anthropic, state: SaveState, tasks: Task[], now: number, tz: string): Promise<Plan> {
   // Streamed, so a long answer cannot run into an HTTP timeout; only the final message is used.
-  const stream = ai.beta.messages.stream({
-    ...baseParams(ctx.config),
-    max_tokens: MAX_TOKENS,
-    // a plain JSON-schema format (no SDK auto-parse), so stop_reason is checked before any parsing
-    output_config: { effort: ctx.config.ai.planEffort, format: { type: 'json_schema', schema: PLAN_SCHEMA } },
-    system: planSystem(state),
-    messages: [{ role: 'user', content: planRequest(state, tasks, now, tz) }],
-  });
+  const stream = ai.beta.messages.stream(
+    {
+      ...baseParams(ctx.config),
+      max_tokens: MAX_TOKENS,
+      // a plain JSON-schema format (no SDK auto-parse), so stop_reason is checked before any parsing
+      output_config: { effort: ctx.config.ai.planEffort, format: { type: 'json_schema', schema: PLAN_SCHEMA } },
+      system: planSystem(state),
+      messages: [{ role: 'user', content: planRequest(state, tasks, now, tz) }],
+    },
+    { timeout: REQUEST_TIMEOUT_MS },
+  );
   const message = await stream.finalMessage();
+  ctx.log.info(usageLine('plan', message));
   if (message.stop_reason === 'refusal') throw new PlanFailure(`declined (${message.stop_details?.category ?? 'uncategorised'})`);
   if (message.stop_reason !== 'end_turn') throw new PlanFailure(`stopped early (${message.stop_reason ?? 'unknown'})`);
 

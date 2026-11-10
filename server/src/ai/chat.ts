@@ -7,7 +7,7 @@ import { touch, uid, type ChatEvent, type ChatMsg, type SaveState } from '../../
 import type { Ctx } from '../context.ts';
 import { CHAT_CAP } from '../state.ts';
 import { safeTz } from '../tz.ts';
-import { baseParams, describeAiError } from './client.ts';
+import { baseParams, describeAiError, usageLine } from './client.ts';
 import { chatSystem } from './prompt.ts';
 import { chatTools, runTool, type ToolOutcome } from './tools.ts';
 
@@ -22,6 +22,8 @@ const HISTORY_MESSAGES = 24;
 const MAX_TURNS = 6;
 /** Room for thinking, a tool call as large as a saved plan, and a reply that goes into depth. */
 const MAX_TOKENS = 16_000;
+/** Per attempt; the SDK retries rate limits and server errors twice on top of this. */
+const REQUEST_TIMEOUT_MS = 90_000;
 /** A client clock this far from ours is not believed. */
 const MAX_CLIENT_CLOCK_DRIFT_MS = 12 * 3_600_000;
 
@@ -129,7 +131,7 @@ export async function runChat(ctx: Ctx, args: ChatArgs, emit: Emit): Promise<voi
     for (let turn = 0; turn < MAX_TURNS; turn++) {
       const stream = ai.beta.messages.stream(
         { ...baseParams(ctx.config), max_tokens: MAX_TOKENS, output_config: { effort: settings.chatEffort }, system, tools, messages },
-        args.signal ? { signal: args.signal } : undefined,
+        args.signal ? { signal: args.signal, timeout: REQUEST_TIMEOUT_MS } : { timeout: REQUEST_TIMEOUT_MS },
       );
 
       let spoke = false;
@@ -148,6 +150,7 @@ export async function runChat(ctx: Ctx, args: ChatArgs, emit: Emit): Promise<voi
         }
         message = await stream.finalMessage();
         unparseable = 0;
+        ctx.log.info(usageLine('chat', message));
       } catch (err) {
         // With eager input streaming the SDK rejects when a tool input is not parseable
         // JSON at all. Only that is retried, and only if nothing of the turn was shown yet.

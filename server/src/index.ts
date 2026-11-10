@@ -19,6 +19,11 @@ log.info(
     ` | Microsoft ${on(config.microsoft != null)} | billing ${on(config.stripe != null)} | web client ${on(fs.existsSync(path.join(config.staticDir ?? '', 'index.html')))}`,
 );
 
+// One request going wrong in an unforeseen way should not take the whole server down.
+process.on('unhandledRejection', (reason) => {
+  log.error(`unhandled rejection (${reason instanceof Error ? reason.name : typeof reason})`);
+});
+
 let stopping = false;
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {

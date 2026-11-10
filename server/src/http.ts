@@ -19,6 +19,7 @@ export class HttpError extends Error {
 
   constructor(status: number, message: string, code?: string) {
     super(message);
+    this.name = 'HttpError';
     this.status = status;
     this.code = code;
   }
@@ -39,7 +40,7 @@ function describe(error: z.ZodError): string {
 const KB = 1024;
 /** Request body ceilings by path. The save is the only large thing a client sends. */
 const BODY_LIMITS: Record<string, number> = {
-  '/api/state': 2 * KB * KB,
+  '/api/state': 4 * KB * KB,
   '/api/billing/webhook': 512 * KB,
 };
 const DEFAULT_BODY_LIMIT = 64 * KB;

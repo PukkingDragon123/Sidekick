@@ -34,6 +34,7 @@ export class ProviderError extends Error {
 
   constructor(message: string, opts: { status?: number; reconnect?: boolean } = {}) {
     super(message);
+    this.name = 'ProviderError';
     this.status = opts.status;
     this.reconnect = opts.reconnect ?? false;
   }

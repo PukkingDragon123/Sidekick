@@ -7,7 +7,6 @@ import { WebSocket } from 'ws';
 import { SPECIES_INFO, type AuthRes, type ChatEvent, type SaveState, type Task, type WsClientMsg, type WsServerMsg } from '../../shared/src/index.ts';
 import { startServer, type AppOptions, type RunningServer } from '../src/app.ts';
 import type { Config } from '../src/config.ts';
-import { silentLogger } from '../src/context.ts';
 
 /** Tue 10 Nov 2026, 09:00 UTC = 16:00 in Bangkok (the zone of the default test save). */
 export const T0 = Date.UTC(2026, 10, 10, 9, 0, 0);
@@ -73,6 +72,8 @@ export interface Harness {
   link(token: string, name?: string, kind?: 'mobile' | 'tablet' | 'desktop' | 'web'): Promise<AuthRes>;
   putState(token: string, state: SaveState): Promise<SaveState>;
   getState(token: string): Promise<SaveState | null>;
+  /** everything the server logged, at any level */
+  logs: string[];
   ws(token: string): Promise<WsClient>;
   chat(token: string, text: string, opts?: { now?: number; tz?: string }): Promise<ChatEvent[]>;
   close(): Promise<void>;
@@ -91,6 +92,7 @@ const open: Harness[] = [];
 
 export async function boot(opts: BootOptions = {}): Promise<Harness> {
   const clock = { now: opts.now ?? T0 };
+  const logs: string[] = [];
   const server = await startServer({
     // an empty environment: nothing from the machine running the tests leaks in
     env: opts.env ?? {},
@@ -105,7 +107,7 @@ export async function boot(opts: BootOptions = {}): Promise<Harness> {
     // server decide from its environment, as it does in production
     anthropic: 'anthropic' in opts ? opts.anthropic : null,
     now: () => clock.now,
-    logger: silentLogger,
+    logger: { info: (m) => logs.push(m), warn: (m) => logs.push(m), error: (m) => logs.push(m) },
   });
   const sockets: WsClient[] = [];
 
@@ -133,6 +135,7 @@ export async function boot(opts: BootOptions = {}): Promise<Harness> {
     server,
     url: server.url,
     clock,
+    logs,
     api,
     async register(name = 'Phone', kind = 'mobile') {
       const res = await api('POST', '/api/auth/register', { body: { deviceName: name, kind } });
@@ -354,6 +357,8 @@ export interface FakeMessage {
   stop_reason: 'end_turn' | 'tool_use' | 'max_tokens' | 'refusal' | 'pause_turn';
   stop_details?: { type: 'refusal'; category: string | null; explanation: string | null } | null;
   model?: string;
+  /** per-attempt usage entries, as the API reports them when a fallback model served the turn */
+  iterations?: { type: 'message' | 'fallback_message'; model: string }[];
 }
 
 export interface AnthropicRequest {
@@ -407,7 +412,12 @@ export function messageStream(message: FakeMessage, index = 0): Response {
   out += sse({
     type: 'message_delta',
     delta: { stop_reason: message.stop_reason, stop_sequence: null, stop_details: message.stop_details ?? null },
-    usage: { output_tokens: 42 },
+    usage: {
+      output_tokens: 42,
+      ...(message.iterations
+        ? { iterations: message.iterations.map((it) => ({ ...it, input_tokens: 100, output_tokens: 42, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 })) }
+        : {}),
+    },
   });
   out += sse({ type: 'message_stop' });
   return new Response(out, { status: 200, headers: { 'content-type': 'text/event-stream', 'request-id': `req_test_${index}` } });

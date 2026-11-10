@@ -30,6 +30,21 @@ export function baseParams(config: Config): {
   return config.ai.fallbacks ? { ...params, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : params;
 }
 
+/**
+ * One log line per model call: token counts, never content. The cache numbers are the only
+ * way to see that prompt caching still works after someone edits a prompt, and a
+ * `fallback_message` iteration is how a response served by a fallback model shows up.
+ */
+export function usageLine(route: string, message: Anthropic.Beta.BetaMessage): string {
+  const u = message.usage;
+  const fallback = (u.iterations ?? []).some((i) => i.type === 'fallback_message');
+  return (
+    `${route}: model=${message.model} stop=${message.stop_reason ?? 'none'} in=${u.input_tokens}` +
+    ` cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0} out=${u.output_tokens}` +
+    (fallback ? ' served_by_fallback=yes' : '')
+  );
+}
+
 /** A sentence for the student when a model call fails. Details go to the log, not the bubble. */
 export function describeAiError(err: unknown): { message: string; log: string } {
   if (err instanceof Anthropic.RateLimitError) {

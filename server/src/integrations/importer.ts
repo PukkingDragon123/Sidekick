@@ -8,6 +8,17 @@ export const STALE_AFTER_MS = 14 * DAY;
 const UNDATED_FRESH_MS = 60 * DAY;
 /** mergeTasks drops tombstones after 30 days; refresh ours a little before that. */
 const TOMBSTONE_REFRESH_MS = 20 * DAY;
+/**
+ * Most open tasks one source may hold. A runaway feed (a whole year of calendar entries)
+ * must not grow the save past what clients can sync; the nearest deadlines get the places.
+ */
+export const MAX_OPEN_PER_SOURCE = 300;
+
+/** Tasks from one connected source share this prefix: `google`, `microsoft`, or `ics:<feed id>`. */
+function sourceGroup(id: string): string {
+  const parts = id.split(':');
+  return parts[0] === 'ics' ? parts.slice(0, 2).join(':') : parts[0];
+}
 
 export interface ImportedTask {
   /** `${source}:${externalId}` */
@@ -28,11 +39,19 @@ export interface ImportedTask {
   sourceCreatedAt?: number;
 }
 
+/** Longest piece of source text we are willing to work on; the rest is dropped unread. */
+const MAX_SOURCE_TEXT = 20_000;
+
+/**
+ * Tags out, basic entities decoded. The patterns never scan past the next `<`, so a feed
+ * full of unclosed angle brackets costs linear time, not quadratic.
+ */
 export function htmlToText(html: string): string {
   return html
+    .slice(0, MAX_SOURCE_TEXT)
     .replace(/<\s*(br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*\/?>/gi, '\n')
-    .replace(/<\s*li[^>]*>/gi, '- ')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<\s*li[^<>]*>/gi, '- ')
+    .replace(/<[^<>]+>/g, '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
@@ -49,6 +68,7 @@ export function htmlToText(html: string): string {
 export function cleanText(input: unknown, max: number): string | undefined {
   if (typeof input !== 'string') return undefined;
   const text = input
+    .slice(0, MAX_SOURCE_TEXT)
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t]+/g, ' ')
     .replace(/ ?\n ?/g, '\n')
@@ -88,17 +108,36 @@ export function isStale(item: ImportedTask, now: number): boolean {
  * the per-task merge. The next import then lays the source's fields back over that edit,
  * so both survive.
  */
-export function applyImport(state: SaveState, items: ImportedTask[], now: number): { added: number; updated: number } {
+export function applyImport(
+  state: SaveState,
+  items: ImportedTask[],
+  now: number,
+): { added: number; updated: number; skipped: number } {
   const byId = new Map<string, Task>();
-  for (const t of state.tasks) byId.set(t.id, t);
+  const open = new Map<string, number>();
+  for (const t of state.tasks) {
+    byId.set(t.id, t);
+    if (t.source !== 'manual' && !t.done && !t.deleted) open.set(sourceGroup(t.id), (open.get(sourceGroup(t.id)) ?? 0) + 1);
+  }
   let added = 0;
   let updated = 0;
+  let skipped = 0;
 
-  for (const item of new Map(items.map((i) => [i.id, i])).values()) {
+  // one entry per id, soonest deadline first, so a full source keeps what matters most
+  const unique = [...new Map(items.map((i) => [i.id, i])).values()].sort((a, b) => (a.due ?? Infinity) - (b.due ?? Infinity));
+  for (const item of unique) {
     const existing = byId.get(item.id);
 
     if (!existing) {
       if (isStale(item, now)) continue;
+      const group = sourceGroup(item.id);
+      if (!item.doneAtSource) {
+        if ((open.get(group) ?? 0) >= MAX_OPEN_PER_SOURCE) {
+          skipped += 1;
+          continue;
+        }
+        open.set(group, (open.get(group) ?? 0) + 1);
+      }
       const task: Task = {
         id: item.id,
         source: item.source,
@@ -168,5 +207,5 @@ export function applyImport(state: SaveState, items: ImportedTask[], now: number
     }
   }
 
-  return { added, updated };
+  return { added, updated, skipped };
 }

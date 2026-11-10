@@ -171,9 +171,7 @@ export function createApp(opts: AppOptions = {}): App {
   const heartbeat = setInterval(() => hub.heartbeat(), 30_000);
   heartbeat.unref();
 
-  const attached = new Set<Server>();
   function attach(server: Server): void {
-    attached.add(server);
     server.on('upgrade', (req, socket, head) => {
       let url: URL;
       try {
@@ -233,6 +231,9 @@ export async function startServer(opts: AppOptions & { port?: number; host?: str
     // overrideGlobalObjects:false keeps the platform's own Request/Response for everything else in the process
     const s = serve({ fetch: built.app.fetch, port, hostname: host, overrideGlobalObjects: false }, () => resolve(s)) as Server;
     s.once('error', reject);
+  }).catch((err: unknown) => {
+    built.close(); // the port was taken or not allowed: do not leave the database open
+    throw err;
   });
   built.attach(server);
 

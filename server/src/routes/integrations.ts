@@ -87,8 +87,9 @@ export function integrationRoutes(app: Hono<AppEnv>, ctx: Ctx, auth: MiddlewareH
     return c.json(res);
   });
 
-  // The provider sends the browser here. No bearer token: the single-use `state` value is
-  // what ties the request to the account that started it.
+  // The provider sends the browser here. There is no bearer token on this request: the
+  // single-use `state` ties it to the account that started the flow, and the cookie set by
+  // /start ties it to the browser that did.
   app.get('/api/integrations/:provider/callback', async (c) => {
     const provider = c.req.param('provider');
     if (!isOAuthProvider(provider)) return apiError(c, 404, 'Unknown provider', 'not_found');

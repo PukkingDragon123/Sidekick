@@ -156,10 +156,14 @@ export function chatSystem(state: SaveState, now: number, tz: string): TextBlock
   ];
 }
 
+/**
+ * Plans are asked for a few times a day per student, so only the rules every account shares
+ * are marked for caching; a per-account entry would be written far more often than read.
+ */
 export function planSystem(state: SaveState): TextBlock[] {
   return [
     { type: 'text', text: PLAN_RULES, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: personaText(state), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: personaText(state) },
   ];
 }
 

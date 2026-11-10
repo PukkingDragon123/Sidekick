@@ -8,7 +8,14 @@ import https from 'node:https';
 import net from 'node:net';
 
 export class SsrfError extends Error {
-  readonly code = 'blocked_url';
+  /** `blocked_url`: we refuse to go there. `host_not_found`: the name does not resolve at all. */
+  readonly code: 'blocked_url' | 'host_not_found';
+
+  constructor(message: string, code: 'blocked_url' | 'host_not_found' = 'blocked_url') {
+    super(message);
+    this.name = 'SsrfError';
+    this.code = code;
+  }
 }
 
 export class FetchLimitError extends Error {
@@ -16,6 +23,7 @@ export class FetchLimitError extends Error {
 
   constructor(code: 'too_large' | 'timeout' | 'too_many_redirects', message: string) {
     super(message);
+    this.name = 'FetchLimitError';
     this.code = code;
   }
 }
@@ -314,9 +322,9 @@ export function createPublicFetch(deps: PublicFetchDeps = {}): PublicFetch {
     try {
       addresses = await lookup(host);
     } catch {
-      throw new SsrfError('That host could not be found');
+      throw new SsrfError('That host could not be found', 'host_not_found');
     }
-    if (!addresses.length) throw new SsrfError('That host could not be found');
+    if (!addresses.length) throw new SsrfError('That host could not be found', 'host_not_found');
     // one private answer among public ones is how DNS rebinding starts: refuse the lot
     if (addresses.some((a) => isBlocked(a.address))) throw new SsrfError('That host is not reachable from here');
     return [...addresses].sort((a, b) => a.family - b.family);

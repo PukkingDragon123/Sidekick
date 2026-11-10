@@ -7,12 +7,13 @@ import { HttpError } from '../http.ts';
 import { safeTz } from '../tz.ts';
 import { pullGoogle } from './google.ts';
 import { icsToTasks, parseIcs, type IcsCalendar } from './ics.ts';
-import { applyImport, cleanText, type ImportedTask } from './importer.ts';
+import { MAX_OPEN_PER_SOURCE, applyImport, cleanText, type ImportedTask } from './importer.ts';
 import { pullMicrosoft } from './microsoft.ts';
 import { ApiSession, ProviderError, providerConfig, type OAuthProvider, type OAuthTokens } from './oauth.ts';
 import { FetchLimitError, SsrfError, assertPublicHttpUrl, normalizeFeedUrl } from './ssrf.ts';
 
 export const MAX_INTEGRATIONS = 20;
+const TOO_MANY_OPEN = `This source has more open items than fit. The ${MAX_OPEN_PER_SOURCE} with the nearest deadlines were imported.`;
 
 interface IcsSecret {
   url: string;
@@ -112,6 +113,7 @@ async function runSync(ctx: Ctx, accountId: string, exceptDevice: string | undef
         const counts = applyImport(s, r.items, now);
         added += counts.added;
         updated += counts.updated;
+        if (counts.skipped) r.warnings.push(TOO_MANY_OPEN);
       }
     },
     exceptDevice,
@@ -155,7 +157,7 @@ export async function addIcsFeed(
     url = assertPublicHttpUrl(normalizeFeedUrl(input.url)).href;
     calendar = await fetchCalendar(ctx, url);
   } catch (err) {
-    if (err instanceof SsrfError) throw new HttpError(400, err.message, 'blocked_url');
+    if (err instanceof SsrfError) throw new HttpError(400, err.message, err.code === 'host_not_found' ? 'feed_unreachable' : 'blocked_url');
     if (err instanceof FetchLimitError) throw new HttpError(400, err.message, 'feed_unreachable');
     if (err instanceof ProviderError) throw new HttpError(400, err.message, 'feed_error');
     ctx.log.warn(`ics: fetch failed (${errorKind(err)})`);
@@ -175,7 +177,7 @@ export async function addIcsFeed(
   });
 
   const items = icsToTasks(calendar, { feedId, tz: safeTz(state.settings.tz), now });
-  let counts = { added: 0, updated: 0 };
+  let counts = { added: 0, updated: 0, skipped: 0 };
   const next: SaveState | null = ctx.states.update(
     accountId,
     (s) => {
@@ -183,8 +185,15 @@ export async function addIcsFeed(
     },
     exceptDevice,
   );
-  ctx.db.setIntegrationResult(id, now, null);
+  const warning = counts.skipped ? TOO_MANY_OPEN : null;
+  ctx.db.setIntegrationResult(id, now, warning);
   const row = ctx.db.integration(id);
   if (!row) throw new HttpError(500, 'Could not store the calendar feed');
-  return { integration: integrationInfo(row), added: counts.added, updated: counts.updated, errors: [], state: next ?? state };
+  return {
+    integration: integrationInfo(row),
+    added: counts.added,
+    updated: counts.updated,
+    errors: warning ? [{ provider: 'ics', message: warning }] : [],
+    state: next ?? state,
+  };
 }

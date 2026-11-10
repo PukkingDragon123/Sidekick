@@ -176,6 +176,18 @@ describe('edge cases', () => {
     expect(ids[2]).toMatch(/^ics:f:h[0-9a-f]{32}$/);
   });
 
+  test('a feed built to be slow to read is not', () => {
+    const nasty =
+      `BEGIN:VEVENT\r\nUID:n1\r\nSUMMARY:${' '.repeat(200_000)}[\r\nDESCRIPTION:${'<a '.repeat(200_000)}\r\nDTSTART:20261112T100000Z\r\nEND:VEVENT\r\n` +
+      `BEGIN:VEVENT\r\nUID:n2\r\nSUMMARY:${'[x] '.repeat(50_000)}\r\nDTSTART:20261112T100000Z\r\nEND:VEVENT\r\n`;
+    const started = performance.now();
+    const tasks = icsToTasks(parseIcs(wrap(nasty)), { feedId: 'f', tz: 'UTC', now: T0 });
+    expect(performance.now() - started).toBeLessThan(500);
+    // the first has nothing left for a title once trimmed, the second is cut to a sane length
+    expect(tasks.map((t) => t.id)).toEqual(['ics:f:n2']);
+    expect(tasks[0].title.length).toBeLessThanOrEqual(300);
+  });
+
   test('a wall-clock time in a daylight-saving zone lands on the right instant on both sides of the change', () => {
     const ics = wrap(
       'BEGIN:VEVENT\r\nUID:summer\r\nSUMMARY:Summer\r\nDTSTART;TZID=Europe/Berlin:20270615T090000\r\nEND:VEVENT\r\n' +

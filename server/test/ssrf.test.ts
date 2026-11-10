@@ -85,7 +85,7 @@ describe('guarded fetch over an injected transport', () => {
       },
       transport: fetchTransport(fakeFetch().fetch),
     });
-    await expect(guarded('https://nowhere.example.com/')).rejects.toThrow(/could not be found/);
+    await expect(guarded('https://nowhere.example.com/')).rejects.toMatchObject({ code: 'host_not_found', message: expect.stringMatching(/could not be found/) });
   });
 
   test('redirects are followed hop by hop, each one re-checked', async () => {
@@ -191,6 +191,20 @@ describe('through the API', () => {
     }
     expect(out.calls).toHaveLength(0);
     expect((await h.api('GET', '/api/integrations', { token: a.token })).body.items).toEqual([]);
+  });
+
+  test('a feed host that does not exist is reported as unreachable, not as blocked', async () => {
+    const h = await boot({
+      fetch: fakeFetch().fetch,
+      lookup: async () => {
+        throw new Error('ENOTFOUND');
+      },
+    });
+    const a = await h.register();
+    await h.putState(a.token, makeState());
+    const res = await h.api('POST', '/api/integrations/ics', { token: a.token, body: { url: 'https://no-such-school.example.com/cal.ics' } });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'That host could not be found', code: 'feed_unreachable' });
   });
 
   test('push endpoints are held to the same rule', async () => {

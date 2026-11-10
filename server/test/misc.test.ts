@@ -236,7 +236,7 @@ describe('body limits', () => {
     const a = await h.register();
     const roomy = makeState({ tasks: Array.from({ length: 400 }, (_, i) => makeTask({ id: `t${i}`, title: `Task ${i}`, notes: 'n'.repeat(1500) })) });
     expect((await h.putState(a.token, roomy)).tasks).toHaveLength(400);
-    const huge = makeState({ tasks: Array.from({ length: 400 }, (_, i) => makeTask({ id: `t${i}`, title: `Task ${i}`, notes: 'n'.repeat(7000) })) });
+    const huge = makeState({ tasks: Array.from({ length: 700 }, (_, i) => makeTask({ id: `t${i}`, title: `Task ${i}`, notes: 'n'.repeat(7000) })) });
     expect((await h.api('PUT', '/api/state', { token: a.token, body: { state: huge } })).status).toBe(413);
   });
 });
