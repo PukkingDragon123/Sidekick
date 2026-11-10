@@ -200,7 +200,7 @@ export class World {
     else if (s) {
       const close = this.focus === 'wardrobe';
       g.target.set(s.pos.x, s.node.position.y + s.height * (close ? 0.5 : 0.62), s.pos.z);
-      g.dist = close ? 6.2 : 8.2; g.pitch = close ? 0.14 : 0.24;
+      g.dist = close ? 6.6 : 8.2; g.pitch = close ? 0.3 : 0.26;
       if (close) g.yaw = s.yaw;
     }
     const k = 1 - Math.exp(-dt * 4.5), c = this.cur;

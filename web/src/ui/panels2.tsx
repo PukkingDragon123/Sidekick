@@ -148,8 +148,8 @@ export function GardenBar() {
   const items = FURNITURE.filter((f) => (S.inventory[f.id] ?? 0) > 0), sel = g.selected ? S.garden.items.find((i) => i.id === g.selected) : null;
   return (
     <div class="fr wood grain" style={{ position: 'absolute', left: U(3), right: U(3), bottom: U(3), zIndex: 6 }}>
-      <div class="row" style={{ marginBottom: U(2) }}>
-        <Ico n="garden" /><b class="grow">{g.ghostItem ? `Drag to position ${ITEM[g.ghostItem].name}` : sel ? ITEM[sel.item].name : 'Tap something to move it, or pick from below'}</b>
+      <div class="row" style={{ marginBottom: U(1.5) }}><Ico n="garden" s /><b class="grow">{g.ghostItem ? `Drag to position: ${ITEM[g.ghostItem].name}` : sel ? `${ITEM[sel.item].name}: drag to move` : 'Tap something to move it, or pick from below'}</b></div>
+      <div class="row" style={{ marginBottom: U(2), justifyContent: 'flex-end' }}>
         {g.ghostItem && <>
           <Btn k="sky" cls="sq" icon="rotate" title="Rotate" snd="rotate_item" onClick={() => { w.ghostRot = (w.ghostRot + 1) % 4; setSpot(g.moveGhost(GARDEN.x + spot.x, GARDEN.z + spot.z, w.ghostRot)); }} />
           <Btn k="leaf" icon="check" disabled={!spot.ok} snd="place_item" onClick={() => { const id = g.ghostItem!; if (placeItem(id, spot.x, spot.z, w.ghostRot)) { g.endGhost(); if ((S.inventory[id] ?? 0) > 0) g.beginGhost(id); refresh(); } }}>Place</Btn>
