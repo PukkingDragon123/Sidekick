@@ -139,6 +139,7 @@ export function installSkin() {
     bubble: frame({ ink: PAL.K, fill: PAL.W, hi: PAL.W, lo: PAL.w, base: PAL.w, baseH: 1, r: 3 }),
     field: frame({ ink: PAL.k, fill: PAL.W, hi: PAL.w, lo: PAL.W, r: 1 }),
     grain: grain(), flecks: flecks(),
+    tail: toUrl(7, 4, (x, y) => { const a = ['KWWWWWK', '.KWWWK.', '..KWK..', '...K...'][y][x]; return a === '.' ? null : PAL[a]; }),
   };
   const b = { wood: btn(PAL.n, PAL.N, PAL.D, PAL.d), leaf: btn(PAL.g, PAL.G, PAL.H, PAL.h), berry: btn(PAL.r, PAL.R, '#a82f33', '#7d2028'), gold: btn(PAL.y, PAL.Y, PAL.Z, '#96640f'), sky: btn(PAL.b, PAL.B, PAL.C, '#2c5d94'), paper: btn(PAL.p, PAL.P, PAL.Q, PAL.q) };
   const root = document.documentElement.style;

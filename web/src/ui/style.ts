@@ -63,7 +63,7 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 
 /* ---- speech bubble */
 .say { position: absolute; left: 0; top: 0; max-width: min(84vw, calc(var(--u) * 104)); min-width: calc(var(--u) * 30); transform: translate(-50%, -100%); padding: calc(var(--u) * 0.5) calc(var(--u) * 1); cursor: pointer; animation: pop 0.24s steps(5); z-index: 2; }
-.say::after { content: ''; position: absolute; left: 50%; bottom: calc(var(--u) * -10); width: calc(var(--u) * 7); height: calc(var(--u) * 4); margin-left: calc(var(--u) * -3.5); background: var(--f-tail) 0 0 / 100% 100%; image-rendering: pixelated; }
+.say::after { content: ''; position: absolute; left: 50%; bottom: calc(var(--u) * -9); width: calc(var(--u) * 7); height: calc(var(--u) * 4); margin-left: calc(var(--u) * -3.5); background: var(--f-tail) 0 0 / 100% 100%; image-rendering: pixelated; }
 .say.side::after { display: none; }
 .say .name { font-weight: 700; font-size: calc(var(--u) * 4.4); color: var(--mute); display: block; margin-bottom: var(--u); }
 
@@ -112,7 +112,8 @@ textarea.inp { padding: calc(var(--u) * 1); resize: none; min-height: calc(var(-
 /* ---- grids */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 28), 1fr)); gap: calc(var(--u) * 2); }
 .cell { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; border-width: calc(var(--u) * 3); border-image-slice: 3 fill; background: none; min-height: calc(var(--u) * 34); }
-.cell img.art { width: calc(var(--u) * 24); height: calc(var(--u) * 24); image-rendering: pixelated; pointer-events: none; }
+.cell img.art, img.art { width: calc(var(--u) * 24); height: calc(var(--u) * 24); pointer-events: none; }
+img.art.big { width: calc(var(--u) * 40); height: calc(var(--u) * 40); }
 .cell .lbl { font-size: calc(var(--u) * 4); text-align: center; line-height: 1.05; padding: 0 var(--u); }
 .cell .cnt { position: absolute; top: 0; right: 0; background: var(--ink); color: #fff; font: 400 calc(var(--u) * 4) / calc(var(--u) * 6) 'Silkscreen', monospace; padding: 0 calc(var(--u) * 1.5); }
 .price { display: inline-flex; align-items: center; gap: var(--u); font-family: 'Silkscreen', monospace; font-size: calc(var(--u) * 4.2); }

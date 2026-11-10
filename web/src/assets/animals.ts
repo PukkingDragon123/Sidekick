@@ -11,6 +11,9 @@ import { dressUp } from './outfits.ts';
 
 /** Texels per model pixel for characters. */
 export const DENS = 2;
+/** Eye size relative to the 5 x 6 px art: kept modest so the face reads cute, not bug-eyed. */
+export const EYE = 0.74;
+const EW = 2.5 * EYE, EH = 3 * EYE;
 
 // ------------------------------------------------------------------ expression frames (10 x 12 eyes, 10 x 6 mouths)
 
@@ -147,7 +150,7 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
     }
     if (tag === 'head' && t.face === 4) {
       const inEyes = y >= eyeLo - 1 && y < eyeHi + 0.5;
-      if (sp === 'owl' && Math.hypot(Math.abs(t.x) - g.eyeDx, t.y - (eyeLo + 3)) < 4.3 + j * 0.5) return 1;
+      if (sp === 'owl' && Math.hypot(Math.abs(t.x) - g.eyeDx, t.y - (eyeLo + 3)) < 3.9 + j * 0.5) return 1;
       if ((sp === 'cat' || sp === 'bunny') && ax < 3.7 && y < g.neck + 4.6) return 1;
       if ((sp === 'frog' || sp === 'axolotl') && y < g.neck + 3.2) return 1;
       if (sp === 'capybara' && y < g.neck + 3.4 && ax < 4.6) return 1;
@@ -202,12 +205,12 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
       const ex = Math.abs(t.x) - g.eyeDx, ey = t.y - (eyeLo + 3);
       // rosy cheeks with a soft dithered edge, a couple of freckles, and a brow over each eye
       if (L.blush) {
-        const d = Math.hypot((ex - 1.4) / 1.7, (t.y - (eyeLo - 0.9)) / 0.95);
+        const d = Math.hypot((ex - 1.2) / 1.6, (ey + EH + 0.9) / 0.9);
         if (d < 0.8 || (d < 1.15 && (hx + hy) % 2 === 0)) return tone(blush, 0.2 + (d < 0.45 ? 0.5 : 0));
       }
-      if (Math.abs(ex + 1) < 2.2 && ey > 3.3 && ey < 4.05 && sp !== 'owl' && sp !== 'frog' && sp !== 'axolotl' && sp !== 'capybara') L2 -= 1.5;
+      if (Math.abs(ex + 0.6) < 1.8 && ey > EH + 0.5 && ey < EH + 1.2 && sp !== 'owl' && sp !== 'frog' && sp !== 'axolotl' && sp !== 'capybara') L2 -= 1.5;
       // a soft dark socket around the eyes gives the face depth
-      if (Math.abs(ex) < 3.1 && Math.abs(ey) < 3.6 && sp !== 'frog') L2 -= 0.55;
+      if (Math.abs(ex) < EW + 0.6 && Math.abs(ey) < EH + 0.6 && sp !== 'frog') L2 -= 0.55;
       if (sp === 'frog' && Math.abs(Math.abs(t.x) - 1.5) < 0.55 && Math.abs(t.y - (g.neck + 5.6)) < 0.55) return tone(base, -2.6);
       if (sp === 'capybara' && Math.abs(Math.abs(t.x) - 1.2) < 0.5 && Math.abs(t.y - (g.neck + 4.2)) < 0.5) return tone(nose, -1);
     }
@@ -445,8 +448,8 @@ export function buildAnimal(look: Look, outfit: Outfit = {}): Animal {
     return m;
   };
   const ey = g.neck + g.eyeY + 3;
-  const eyeL = mk(artTexture(framesL, eyePal), 5, 6, -g.eyeDx, ey, g.hf + 0.06);
-  const eyeR = mk(artTexture(framesR, eyePal), 5, 6, g.eyeDx, ey, g.hf + 0.06);
+  const eyeL = mk(artTexture(framesL, eyePal), 5 * EYE, 6 * EYE, -g.eyeDx, ey, g.hf + 0.06);
+  const eyeR = mk(artTexture(framesR, eyePal), 5 * EYE, 6 * EYE, g.eyeDx, ey, g.hf + 0.06);
   let mouthMesh: THREE.Mesh | null = null;
   if (g.mouth) {
     const mouthPal = { K: lineInk, R: 0x7a2c3a, T: 0xf07a8c, W: 0xffffff };
