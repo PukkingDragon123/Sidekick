@@ -16,7 +16,9 @@ import { actor, away, Bar, Btn, ctx, focus, gardenMode, hush, Ico, Modal, modal,
 import { ChatPanel, QuestsPanel, TasksPanel } from './panels.tsx';
 import { BagPanel, FriendsPanel, GardenBar, Onboarding, SettingsPanel, ShopPanel, WardrobePanel } from './panels2.tsx';
 import { iconUrl } from './pix.ts';
-import { spriteUrl } from './woodkit.ts';
+import { spriteSize, spriteUrl } from './woodkit.ts';
+import { started, Title } from './title.tsx';
+import { foodSpriteMesh } from './foodArt.ts';
 
 const U = (n: number) => `calc(var(--u) * ${n})`;
 
@@ -111,11 +113,38 @@ function Hud() {
         <img class="face" src={faceIcon(sk)} alt="" />
         <div><b>{sk.name}</b><span class="num small">Lv {p.level}</span><Bar v={p.xp} max={xpFor(p.level)} /></div>
       </div>
-      <div class="chips">
-        <span class="chip fr dark sm num" id="coins" onClick={() => open('shop')}><Ico n="coin" s />{p.coins}</span>
-        <span class="chip fr dark sm num" onClick={() => open('shop')}><Ico n="gem" s />{p.gems}</span>
-        <span class="chip fr dark sm num" onClick={() => open('quests')}><Ico n="flame" s />{p.streakDays}</span>
-        <span class="chip fr dark sm" title={net.link.value === 'online' ? 'Synced' : 'Offline'} onClick={() => open('settings')}><Ico n={net.link.value === 'online' ? 'cloud' : 'device'} s /></span>
+      <Wallet coins={p.coins} gems={p.gems} streak={p.streakDays} />
+    </div>
+  );
+}
+
+/** A number that rolls up or down to its new value instead of jumping. */
+function Rolling({ n }: { n: number }) {
+  const [shown, setShown] = useState(n), from = useRef(n);
+  useEffect(() => {
+    const a = from.current, t0 = performance.now(), dur = Math.min(900, 250 + Math.abs(n - a) * 8);
+    let raf = 0;
+    const step = (t: number) => { const k = Math.min(1, (t - t0) / dur), e = 1 - (1 - k) ** 3; setShown(Math.round(a + (n - a) * e)); if (k < 1) raf = requestAnimationFrame(step); else from.current = n; };
+    raf = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(raf); from.current = n; };
+  }, [n]);
+  return <>{shown.toLocaleString()}</>;
+}
+
+/** The money display: a leather wallet for coins, a velvet pouch for gems and a candle for the streak. */
+function Wallet({ coins, gems, streak }: { coins: number; gems: number; streak: number }) {
+  const [bump, setBump] = useState(0), last = useRef(coins);
+  useEffect(() => { if (coins > last.current) setBump((b) => b + 1); last.current = coins; }, [coins]);
+  const w = spriteSize('wallet'), pz = spriteSize('pouch'), cz = spriteSize('candle');
+  return (
+    <div class="wallet-hud">
+      <button id="coins" key={bump} class="wallet" style={{ width: w.w, height: w.h, backgroundImage: `url(${spriteUrl('wallet')})` }} onClick={() => open('shop')} aria-label={`${coins} coins. Open the market`}>
+        <span class="wnum"><Rolling n={coins} /></span>
+      </button>
+      <div class="wsmall">
+        <button class="pouch" style={{ width: pz.w, height: pz.h, backgroundImage: `url(${spriteUrl('pouch')})` }} onClick={() => open('shop')} aria-label={`${gems} gems`}><span class="wtag"><Rolling n={gems} /></span></button>
+        <button class="candle" style={{ width: cz.w, height: cz.h, backgroundImage: `url(${spriteUrl('candle')})` }} onClick={() => open('quests')} aria-label={`${streak}-day streak`}><span class="wtag">{streak}</span></button>
+        <button class="link-dot" title={net.link.value === 'online' ? 'Synced' : 'Offline'} onClick={() => open('settings')}><Ico n={net.link.value === 'online' ? 'cloud' : 'device'} s /></button>
       </div>
     </div>
   );
@@ -174,6 +203,7 @@ function AwayBanner() {
 export function App() {
   rev.value; // eslint-disable-line @typescript-eslint/no-unused-expressions
   const p = panel.value;
+  if (!started.value) return <><Title /><Toasts /><FxLayer /></>;
   if (!S.owner.onboarded) return <><Onboarding /><Toasts /><FxLayer /></>;
   return (
     <>
@@ -253,10 +283,13 @@ export function wire(world: World) {
     if (e.type === 'fed') {
       const a = actor(), f = FOOD[e.food];
       if (!a || !f) return;
-      let prop = foodProps.get(e.food);
-      if (!prop) { prop = buildProp(f.build()); foodProps.set(e.food, prop); }
+      // the pixel-art sprite where there is one (it reads better at hand size), else the 3D model
+      const sprite = f.sprite ? foodSpriteMesh(f.sprite) : null;
+      let held: Parameters<typeof a.feed>[0] | null = sprite;
+      if (!held && f.build) { let prop = foodProps.get(e.food); if (!prop) { prop = buildProp(f.build()); foodProps.set(e.food, prop); } held = prop; }
+      if (!held) return;
       sound.play('pickup_item');
-      a.feed(prop, e.loved, () => say(brain.yum(e.loved), 3));
+      a.feed(held, e.loved, () => say(brain.yum(e.loved), 3));
     }
   });
 
@@ -339,7 +372,8 @@ export function wire(world: World) {
   upkeep();
   // greet once the player is in
   let greeted = false;
-  const hello = () => { if (!greeted && S.owner.onboarded && world.sidekick) { greeted = true; setTimeout(() => say(brain.greeting(), 7), 1400); } };
+  const hello = () => { if (!greeted && started.value && S.owner.onboarded && world.sidekick) { greeted = true; setTimeout(() => say(brain.greeting(), 7), 1400); } };
   rev.subscribe(hello);
+  started.subscribe(hello);
   void fmtMinutes; void iconUrl;
 }

@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => ({
   base: mode === 'artifact' ? './' : '/',
   define: mode === 'artifact' ? { 'import.meta.env.VITE_OFFLINE': JSON.stringify('1') } : {},
   plugins: [preact()],
+  // keep non-ASCII characters escaped in the bundle (some hosts reject literal U+FFFD)
+  esbuild: { charset: 'ascii' },
   resolve: { alias: { '@shared': resolve(__dirname, '../shared/src') } },
   server: {
     host: true,

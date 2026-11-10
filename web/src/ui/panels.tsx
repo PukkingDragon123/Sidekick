@@ -4,6 +4,7 @@ import { approachFor, dueLabel, estimateMinutes, fmtMinutes, hoursLeft, promptsF
 import type { Task } from '@shared/types.ts';
 import { sound } from '../core/audio.ts';
 import { localReply, parseDue } from '../core/brain.ts';
+import { chatDirect, hasKey } from '../core/byok.ts';
 import { QUEST, xpFor } from '../core/data.ts';
 import * as net from '../core/net.ts';
 import { addReminder, addTask, claim, ensurePlan, patchTask, pushChat, removeTask, rev, S, setDone, sidekick, toggleStep, track } from '../core/store.ts';
@@ -183,10 +184,18 @@ export function ChatPanel() {
       else if (e.type === 'done') final = e.message.text;
       else if (e.type === 'error') reply = '';
     });
+    // no server AI: use the player's own key if they gave one, else the offline brain
+    let direct = '', note = '';
+    if (!(ok && (final || reply)) && hasKey()) {
+      reply = '';
+      try { direct = await chatDirect(msg, (d) => { reply += d; setPending({ user: msg, reply }); if (sk && /[a-z]/i.test(d)) sound.blip(sk.look.species, d.replace(/[^a-z]/gi, '')[0] ?? 'a'); }); }
+      catch (e) { note = (e as Error).message; }
+    }
     if (a) a.speaking = false;
     pushChat('user', msg);
-    if (ok && (final || reply)) pushChat('sidekick', final || reply);
-    else { const r = localReply(msg); pushChat('sidekick', r.text); if (r.emote) a?.emote(r.emote); }
+    if (ok && (final || reply) && !direct) pushChat('sidekick', final || reply);
+    else if (direct) pushChat('sidekick', direct);
+    else { const r = localReply(msg); pushChat('sidekick', note ? `${note} ${r.text}` : r.text); if (r.emote) a?.emote(r.emote); }
     setPending(null);
   };
   return (
@@ -199,7 +208,7 @@ export function ChatPanel() {
           <div ref={end} />
         </div>
       </Paper>
-      {!net.health.value?.ai && <div class="small" style={{ opacity: 0.85, marginTop: 'var(--u)' }}>Offline brain: planning, quick-add and jokes. The server needs an AI key for real conversation.</div>}
+      {!net.health.value?.ai && !hasKey() && <div class="small" style={{ opacity: 0.85, marginTop: 'var(--u)' }}>Offline brain: planning, quick-add and jokes. Add your Anthropic API key on the start screen for real conversation.</div>}
       <div class="sugg">{SUGGEST.map((s) => <Btn key={s} small k="pap" onClick={() => send(s)}>{s}</Btn>)}</div>
       <div class="row">
         <input class="inp fr field" style={{ color: 'var(--ink)' }} placeholder={`Say something to ${sk?.name ?? 'your sidekick'}`} value={text} onInput={(e) => setText(e.currentTarget.value)} onKeyDown={(e) => e.key === 'Enter' && send(text)} enterkeyhint="send" />

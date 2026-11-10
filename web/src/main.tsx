@@ -7,6 +7,7 @@ import * as net from './core/net.ts';
 import { begin, S } from './core/store.ts';
 import { App, wire } from './ui/app.tsx';
 import { open } from './ui/kit.tsx';
+import { started } from './ui/title.tsx';
 import { savedSky } from './ui/panels2.tsx';
 import { installSkin } from './ui/pix.ts';
 import { CSS } from './ui/style.ts';
@@ -31,7 +32,8 @@ if (innerWidth < innerHeight) world.snapCamera({ dist: 17, pitch: 0.5 }); else w
 addEventListener('resize', () => world.resize());
 
 // developer conveniences used by the screenshot harness
-if (q.has('demo') && !S.owner.onboarded) begin((q.get('demo') || 'fox') as never, '', 'Mali', true);
+if (q.has('demo') && !S.owner.onboarded) begin((q.get('demo') || 'cat') as never, '', 'Mali', true);
+if (q.has('demo') || q.has('panel') || q.has('play')) started.value = true;
 
 sound.sfxVol = S.settings.sfx; sound.ambVol = S.settings.ambience; sound.voiceOn = S.settings.voice;
 void sound.init();

@@ -55,7 +55,8 @@ export class Critters {
   readonly group = new THREE.Group();
   private flyers: Flyer[] = [];
   private birds: Bird[] = [];
-  private fish: { rig: Rig; a: number; r: number; speed: number }[] = [];
+  private fish: { rig: Rig; a: number; r: number; speed: number; depth: number; jump: number; wait: number }[] = [];
+  private flies: { rig: Rig; pos: THREE.Vector3; goal: THREE.Vector3; t: number; hover: number }[] = [];
   private bugs: { mesh: THREE.Object3D; a: number }[] = [];
   private acc = { leaf: 0, mote: 0, fly: 0, gust: 0 };
 
@@ -77,11 +78,22 @@ export class Critters {
       this.group.add(rig.root);
       this.birds.push({ rig, pos: p.clone(), home: p.clone(), state: 'perch', t: rand(1, 4), from: p.clone(), to: p.clone(), yaw: rand(0, 6.28), hop: 0 });
     });
-    for (let i = 0; i < 3; i++) {
-      const rig = koi(['#f2792e', '#f2a531', '#e5484d'][i]);
+    const koiCols = ['#f2792e', '#f2a531', '#e5484d', '#fbf6ea', '#f6c445', '#e5484d', '#3a3a44', '#f2792e'];
+    for (let i = 0; i < (quality === 'high' ? 8 : 5); i++) {
+      const rig = koi(koiCols[i]);
       rig.root.traverse((o) => { o.castShadow = false; });
       this.group.add(rig.root);
-      this.fish.push({ rig, a: rand(0, 6.28), r: rand(0.35, 0.68), speed: rand(0.25, 0.45) * (i % 2 ? 1 : -1) });
+      this.fish.push({ rig, a: rand(0, 6.28), r: rand(0.25, 0.72), speed: rand(0.22, 0.5) * (i % 2 ? 1 : -1), depth: rand(0.18, 0.42), jump: -1, wait: rand(6, 20) });
+    }
+    // dragonflies: long thin bodies, glassy wings, darting between hover points over the water
+    for (let i = 0; i < (quality === 'high' ? 3 : 2); i++) {
+      const body: Painter = (t) => (Math.floor(t.bz) % 2 ? 0x2f8fd6 : 0x5ad1e8);
+      const wing: Painter = (t) => (t.bx < 0.6 || t.bx > t.sx - 0.6 ? 0x9fd8ee : 0xe6f8ff);
+      const rig = flyer([box(0, 0, 0, 1, 1, 7, body), box(0, 0.2, 3.6, 1.6, 1.4, 1.4, solid('#1f5f9a', { noise: 0 }))], (sd) => [box(sd * 3, 0.8, 1.2, 6, 0.3, 1.4, wing), box(sd * 2.6, 0.8, -0.4, 5, 0.3, 1.2, wing)], 0.8);
+      rig.root.traverse((o) => { o.castShadow = false; });
+      this.group.add(rig.root);
+      const p = new THREE.Vector3(POND.x + rand(-2, 2), WATER_Y + rand(0.8, 1.4), POND.z + rand(-1.5, 1.5));
+      this.flies.push({ rig, pos: p, goal: p.clone(), t: rand(0, 2), hover: rand(0, 6) });
     }
     // ladybirds strolling along the fallen log
     for (let i = 0; i < 2; i++) {
@@ -152,9 +164,35 @@ export class Critters {
     for (const f of this.fish) {
       f.a += f.speed * dt;
       const x = POND.x + Math.cos(f.a) * POND.rx * f.r, z = POND.z + Math.sin(f.a) * POND.rz * f.r;
-      f.rig.root.position.set(x, WATER_Y - 0.3, z);
-      f.rig.root.rotation.y = Math.atan2(-Math.sin(f.a) * POND.rx * Math.sign(f.speed), Math.cos(f.a) * POND.rz * Math.sign(f.speed));
-      f.rig.bones.tail.rotation.y = Math.sin(t * 6 + f.a) * 0.6;
+      const yaw = Math.atan2(-Math.sin(f.a) * POND.rx * Math.sign(f.speed), Math.cos(f.a) * POND.rz * Math.sign(f.speed));
+      let y = WATER_Y - f.depth, pitch = 0;
+      // now and then a fish leaps clear of the water in an arc and splashes back in
+      if (f.jump < 0 && (f.wait -= dt) <= 0 && day) { f.jump = 0; this.fx.burst('splash', x, WATER_Y + 0.05, z, 6); this.fx.ripple(x, WATER_Y, z); this.sound('water_plop', new THREE.Vector3(x, WATER_Y, z)); }
+      if (f.jump >= 0) {
+        f.jump += dt / 0.85;
+        const k = Math.min(1, f.jump);
+        y = WATER_Y - 0.1 + Math.sin(k * Math.PI) * 0.9; pitch = (0.5 - k) * 2.2;
+        if (f.jump >= 1) { f.jump = -1; f.wait = rand(10, 28); this.fx.burst('splash', x, WATER_Y + 0.05, z, 8); this.fx.ripple(x, WATER_Y, z); this.sound('water_plop', new THREE.Vector3(x, WATER_Y, z)); }
+      } else if (Math.random() < dt * 0.15) this.fx.ripple(x, WATER_Y, z);
+      f.rig.root.position.set(x, y, z);
+      f.rig.root.rotation.set(pitch, yaw, 0, 'YXZ');
+      f.rig.bones.tail.rotation.y = Math.sin(t * (f.jump >= 0 ? 16 : 6) + f.a) * 0.6;
+    }
+    for (const d of this.flies) {
+      d.rig.root.visible = day;
+      if (!day) continue;
+      d.t -= dt;
+      if (d.t <= 0) {
+        d.t = rand(0.8, 2.6);
+        d.goal.set(POND.x + rand(-POND.rx, POND.rx) * 1.1, WATER_Y + rand(0.5, 1.6), POND.z + rand(-POND.rz, POND.rz) * 1.1);
+      }
+      // dart quickly, then hang almost still
+      const to = d.goal.clone().sub(d.pos), dist = to.length();
+      if (dist > 0.05) { d.pos.addScaledVector(to, Math.min(1, dt * 6)); d.rig.root.rotation.y = Math.atan2(to.x, to.z); }
+      d.hover += dt;
+      d.rig.root.position.set(d.pos.x, d.pos.y + Math.sin(d.hover * 3) * 0.03, d.pos.z);
+      const w = Math.sin(t * 70 + d.hover) * 0.5;
+      d.rig.bones.wingL.rotation.z = -w; d.rig.bones.wingR.rotation.z = w;
     }
     this.bugs.forEach((b, i) => {
       b.a += dt * 0.12 * (i ? -1 : 1);

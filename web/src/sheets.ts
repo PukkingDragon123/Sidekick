@@ -45,7 +45,7 @@ export async function sheet(name: string, q: URLSearchParams): Promise<SheetItem
     const F = await import('./assets/furniture.ts');
     const only = q.get('only')?.split(',');
     const list = name === 'food' ? F.FOODS : F.FURNITURE;
-    return list.filter((i) => !only || only.includes(i.id)).map((i) => ({ name: i.id, obj: propMesh(buildProp(i.build())) }));
+    return (list as { id: string; build?: () => never[] }[]).filter((i) => (!only || only.includes(i.id)) && i.build).map((i) => ({ name: i.id, obj: propMesh(buildProp(('build' in i && i.build ? i.build() : []))) }));
   }
   return [];
 }

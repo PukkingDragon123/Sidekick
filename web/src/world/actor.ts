@@ -71,6 +71,8 @@ export class Actor {
   private fxT = 0;
   energy = 80; joy = 80; hunger = 30;
   companion = false;
+  /** how hard the animal presses the grass around it (eased, for the grass physics) */
+  press = 0;
   visible = true;
 
   constructor(public sk: Sidekick, private env: ActorEnv) {
@@ -141,12 +143,13 @@ export class Actor {
   }
 
   /** Eat a food model: hold it, munch, crumbs, then a happy wiggle. */
-  feed(food: Prop, loved: boolean, done?: () => void) {
+  /** `food` is a 3D model, or a ready-made object such as a 2D pixel-art sprite. */
+  feed(food: Prop | THREE.Object3D, loved: boolean, done?: () => void) {
     this.leaveSeat(true);
     this.target = null;
-    const m = propMesh(food);
-    m.scale.setScalar(0.8);
-    m.position.set(0, -0.1, 0.12);
+    const m = food instanceof THREE.Object3D ? food : propMesh(food);
+    if (!(food instanceof THREE.Object3D)) m.scale.setScalar(0.8);
+    m.position.set(0, -0.1, 0.16);
     this.animal.rig.bones.handR.add(m);
     this.held = m;
     this.set('eat', 3.4);

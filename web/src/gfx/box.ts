@@ -247,12 +247,15 @@ export const wind = {
   uTime: { value: 0 },
   /** xy = direction, z = strength in blocks */
   uWind: { value: new THREE.Vector3(0.8, 0.6, 0.09) },
+  /** things pushing plants aside: x, z, radius (blocks), strength. Up to 6, unused ones have radius 0. */
+  uPush: { value: Array.from({ length: 6 }, () => new THREE.Vector4(0, 0, 0, 0)) },
 };
 
 const WIND_PARS = /* glsl */ `
 attribute float aSway;
 uniform float uTime;
 uniform vec3 uWind;
+uniform vec4 uPush[6];
 `;
 const WIND_MAIN = /* glsl */ `
 #ifdef USE_INSTANCING
@@ -263,6 +266,19 @@ const WIND_MAIN = /* glsl */ `
 float swPh = dot(swBase.xz, vec2(0.37, 0.29)) + position.y * 0.6;
 float swG = sin(uTime * 1.35 + swPh) * 0.55 + sin(uTime * 2.8 + swPh * 2.1) * 0.22 + sin(uTime * 0.43 + swPh * 0.33) * 0.5;
 vec3 swOff = vec3(uWind.x * swG, -0.25 * abs(swG), uWind.y * swG) * (uWind.z * aSway);
+// plants are shoved aside by whatever walks through them, flattening under the feet and wobbling as they recover
+vec3 swWorld = swBase + swM * position;
+for (int i = 0; i < 6; i++) {
+  vec4 p = uPush[i];
+  if (p.z <= 0.0) continue;
+  vec2 d = swWorld.xz - p.xy;
+  float dist = length(d);
+  float k = 1.0 - smoothstep(p.z * 0.25, p.z, dist);
+  if (k <= 0.0) continue;
+  vec2 dir = dist > 0.001 ? d / dist : vec2(0.0, 1.0);
+  float push = k * p.w * aSway * (1.0 + 0.12 * sin(uTime * 9.0 + dist * 6.0));
+  swOff += vec3(dir.x * push * 0.32, -push * 0.22, dir.y * push * 0.32);
+}
 transformed += (transpose(swM) * swOff) / dot(swM[0], swM[0]);
 `;
 

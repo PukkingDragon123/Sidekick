@@ -589,7 +589,10 @@ export interface FoodDef {
   joy: number;
   /** species that go wild for it */
   loved: string[];
-  build(): BoxSpec[];
+  /** 3D model, for foods that have one */
+  build?(): BoxSpec[];
+  /** 2D pixel-art sprite id from Xolotl Kobini's food library */
+  sprite?: string;
 }
 
 const bread = solid('#e0a85a', { noise: 0.7, scale: 1.5 });
@@ -628,7 +631,13 @@ function foodBuilders() {
 }
 const FOODS_BUILD = foodBuilders();
 
-const food = (id: keyof typeof FOODS_BUILD, name: string, price: number, fill: number, joy: number, loved: string[]): FoodDef => ({ id, name, price, fill, joy, loved, build: FOODS_BUILD[id] });
+/** Pixel-art sprite for each food (Xolotl Kobini ids). Foods without a 3D model are sprite-only. */
+const SPRITE: Record<string, string> = {
+  apple: 'apple', berries: 'strawberry', cookie: 'cookie', donut: 'donut', sandwich: 'club_sandwich', onigiri: 'onigiri', dango: 'mochi',
+  cake: 'shortcake', pancakes: 'pancakes', ramen: 'ramen', boba: 'green_tea', honey: 'honey',
+};
+const food = (id: keyof typeof FOODS_BUILD, name: string, price: number, fill: number, joy: number, loved: string[]): FoodDef => ({ id, name, price, fill, joy, loved, build: FOODS_BUILD[id], sprite: SPRITE[id] });
+const snack = (id: string, name: string, price: number, fill: number, joy: number, loved: string[]): FoodDef => ({ id, name, price, fill, joy, loved, sprite: id });
 export const FOODS: FoodDef[] = [
   food('apple', 'Crisp Apple', 8, 18, 6, ['bear', 'dog']), food('berries', 'Berry Bowl', 12, 20, 10, ['bear', 'redpanda', 'owl']),
   food('carrot', 'Crunchy Carrot', 8, 18, 8, ['bunny', 'parrot']), food('acorn', 'Roasted Acorn', 6, 12, 6, ['owl', 'raccoon', 'parrot']),
@@ -636,6 +645,13 @@ export const FOODS: FoodDef[] = [
   food('sandwich', 'Stacked Sandwich', 24, 38, 12, ['fox', 'bear', 'dog', 'shark']), food('onigiri', 'Onigiri', 18, 30, 12, ['cat', 'frog', 'shark', 'goldfish']),
   food('dango', 'Three-colour Dango', 22, 22, 22, ['redpanda', 'frog']), food('cake', 'Strawberry Cake', 40, 34, 34, ['bunny', 'axolotl']),
   food('pancakes', 'Maple Pancakes', 36, 44, 24, ['bear', 'fox']), food('ramen', 'Cosy Ramen', 48, 60, 26, ['cat', 'raccoon']),
-  food('boba', 'Bubble Tea', 30, 16, 36, ['axolotl', 'bunny', 'cat']), food('honey', 'Honey Pot', 26, 26, 24, ['bear', 'dog']),
+  food('boba', 'Bubble Tea', 30, 16, 36, ['axolotl', 'bunny', 'cat']), food('honey', 'Honey Pot', 26, 26, 24, ['bear', 'goldfish']),
+  snack('croissant', 'Croissant', 16, 18, 14, ['fox', 'cat']), snack('cupcake', 'Cherry Cupcake', 22, 14, 26, ['bunny', 'axolotl']),
+  snack('banana', 'Bananas', 10, 20, 10, ['parrot', 'raccoon']), snack('watermelon', 'Watermelon Slice', 14, 18, 18, ['frog', 'shark']),
+  snack('popcorn', 'Popcorn Bucket', 18, 16, 22, ['raccoon', 'dog']), snack('ice_cream', 'Ice Cream Cone', 24, 12, 30, ['axolotl', 'dog']),
+  snack('burger', 'Cheeseburger', 32, 46, 20, ['dog', 'shark', 'bear']), snack('pizza', 'Pepperoni Pizza', 34, 44, 24, ['raccoon', 'fox']),
+  snack('taco', 'Crunchy Taco', 26, 34, 18, ['fox', 'parrot']), snack('maki', 'Maki Rolls', 28, 32, 20, ['cat', 'goldfish', 'shark']),
+  snack('bao', 'Steamed Bao', 20, 28, 16, ['redpanda', 'bear']), snack('candy_apple', 'Candy Apple', 18, 10, 28, ['bunny', 'parrot']),
+  snack('lemonade', 'Lemonade', 14, 8, 22, ['frog', 'goldfish']), snack('milk', 'Milk Carton', 10, 12, 12, ['cat', 'dog']),
 ];
 export const FOOD: Record<string, FoodDef> = Object.fromEntries(FOODS.map((f) => [f.id, f]));

@@ -7,6 +7,7 @@ import { buildAnimal } from '../assets/animals.ts';
 import { FOOD, ITEM } from '../assets/furniture.ts';
 import { buildProp, propMesh } from '../gfx/box.ts';
 import { itemProp } from '../world/garden.ts';
+import { foodSpriteUrl } from './foodArt.ts';
 
 const S = 96;
 let R: THREE.WebGLRenderer | null = null, scene: THREE.Scene, cam: THREE.OrthographicCamera;
@@ -69,7 +70,14 @@ const memo = (key: string, make: () => string): string => {
 };
 
 export const itemIcon = (id: string) => memo('i:' + id, () => (ITEM[id] ? shoot(propMesh(itemProp(id)), 0.6, 0.55) : ''));
-export const foodIcon = (id: string) => memo('f:' + id, () => (FOOD[id] ? shoot(propMesh(buildProp(FOOD[id].build())), 0.6, 0.6) : ''));
+/** Food icons are the 2D pixel-art sprites where one exists, otherwise a render of the 3D model. */
+export const foodIcon = (id: string) => memo('f:' + id, () => {
+  const f = FOOD[id];
+  if (!f) return '';
+  const k = Math.max(1, Math.min(3, Math.round(devicePixelRatio || 1)));
+  if (f.sprite) { const u = foodSpriteUrl(f.sprite, 2 * k); if (u) return u; }
+  return f.build ? shoot(propMesh(buildProp(f.build())), 0.6, 0.6) : '';
+});
 
 const lookKey = (l: Look) => [l.species, l.fur, l.fur2, l.accent, l.eye, l.eyeStyle, l.pattern, l.ears, l.tail, l.build, l.blush].join('|');
 

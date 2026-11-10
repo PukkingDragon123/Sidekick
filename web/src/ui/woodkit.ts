@@ -331,6 +331,83 @@ SPR.token = { w: 34, h: 34, paint(p) {
 } };
 SPR.tail = { w: 10, h: 7, paint(p) { const rows = ['KPPPPPPPPK', '.KPPPPPPK.', '..KPPPPK..', '...KPPK...', '....KK....', '..........', '..........']; rows.forEach((r, y) => [...r].forEach((ch, x) => p.set(x, y, ch === 'K' ? WOOD[0] : ch === 'P' ? PAPER[6] : null))); } };
 
+// ---------------------------------------------------------------- the wallet (HUD money display)
+
+const LEATHER = shades('#2a120a', '#4a2112', '#6b3219', '#8c4722', '#a85e2f', '#c27a40', '#d89a5a');
+const VELVET = shades('#1e0d2e', '#35184f', '#4f2775', '#6a389a', '#8a52c0', '#b07ce0');
+const NOTE = shades('#1f4a2a', '#2f6b3a', '#4a8f50', '#73b36a', '#a6d68c', '#d8f0bc');
+const WAX = shades('#7a5a3a', '#c9b48a', '#e9dcc0', '#f8f0dc', '#fffaf0');
+
+function coin(p: Px, cx: number, cy: number, r: number) {
+  for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+    const d = Math.hypot((x + 0.5 - cx) / r, (y + 0.5 - cy) / (r * 0.92));
+    if (d > 1) continue;
+    const lit = (x - cx) + (y - cy);
+    p.set(x, y, d > 0.82 ? GOLD[1] : d > 0.62 ? GOLD[lit < 0 ? 4 : 2] : GOLD[lit < -1 ? 5 : lit > 1 ? 3 : 4]);
+  }
+  p.set(Math.round(cx - r * 0.4), Math.round(cy - r * 0.4), GOLD[6]);
+}
+
+/** A stitched leather wallet with a flap and brass snap, coins and a banknote poking out of the top. */
+SPR.wallet = { w: 84, h: 48, paint(p) {
+  // banknote and coins behind the flap
+  for (let y = 2; y < 16; y++) for (let x = 54; x < 76; x++) { const yy = y + Math.round((x - 54) * -0.18); if (yy < 2 || yy > 15) continue; p.set(x, yy, (x - 54) % 9 === 4 || yy === 8 ? NOTE[2] : (x + yy) % 7 === 0 ? NOTE[4] : NOTE[3]); }
+  coin(p, 14, 10, 6); coin(p, 24, 8, 6.5); coin(p, 34, 11, 6); coin(p, 44, 9, 5.5);
+  // body
+  p.each((x, y) => {
+    if (y < 13) return null; // keep the coins and note painted above
+    const d = rrd(x, y - 13, 84, 35, 6);
+    if (d < 0) return null;
+    const n = (h2(x >> 1, y >> 1, 21) - 0.5) * 0.9 + (h2(x, y, 22) > 0.93 ? 0.8 : 0);
+    let v = 3.6 + n + (y < 24 ? -0.2 : 0.3) - (d < 2 ? 0.8 : 0) + (y > 44 ? -1 : 0);
+    if (d === 3 && (x + y) % 3 !== 0) return WAX[2]; // stitching
+    if (d === 2 || d === 4) v -= 0.4;
+    return LEATHER[Math.max(1, Math.min(6, Math.round(v)))];
+  });
+  // flap: darker leather with a scalloped lower edge, stitched, and a brass snap
+  for (let y = 13; y < 29; y++) for (let x = 2; x < 82; x++) {
+    const edge = 26 + Math.round(Math.cos(((x - 42) / 40) * Math.PI) * 2.5);
+    if (y > edge || rrd(x, y - 13, 84, 35, 6) < 0) continue;
+    if (y === edge) { p.set(x, y, LEATHER[0]); continue; }
+    if (y === edge - 2 && x > 5 && x < 79 && (x % 3) !== 0) { p.set(x, y, WAX[1]); continue; }
+    p.set(x, y, LEATHER[Math.round(2.6 + (h2(x >> 1, y >> 1, 23) - 0.5) * 0.8 + (y < 16 ? 0.8 : 0))]);
+  }
+  for (let y = 22; y < 31; y++) for (let x = 37; x < 47; x++) { const d = Math.hypot(x + 0.5 - 42, y + 0.5 - 26.5); if (d < 4.6) p.set(x, y, d > 3.6 ? GOLD[1] : (x + y) < 66 ? GOLD[5] : GOLD[3]); }
+  p.set(40, 24, GOLD[6]);
+  p.outline();
+} };
+
+/** A velvet drawstring pouch with a gem peeking out. */
+SPR.pouch = { w: 30, h: 34, paint(p) {
+  p.each((x, y) => {
+    if (y < 9) return null;
+    const cx = 15, w = y < 13 ? 6 + (y - 9) * 0.6 : 12 - Math.max(0, y - 26) * 1.1;
+    const dx = Math.abs(x + 0.5 - cx);
+    if (dx > w || y > 32) return null;
+    const v = 3 + (x < cx ? 0.8 : -0.6) + (y > 28 ? -1 : 0) + (Math.floor(dx) % 4 === 1 && y > 14 ? -0.6 : 0);
+    return VELVET[Math.max(0, Math.min(5, Math.round(v)))];
+  });
+  // gem
+  for (let y = 2; y < 11; y++) for (let x = 10; x < 21; x++) { const dx = Math.abs(x + 0.5 - 15), dy = y - 2; if (dx > (dy < 3 ? 2 + dy : 5 - (dy - 3) * 0.75)) continue; p.set(x, y, dy < 3 ? (x < 15 ? hexc('#d9f6ff') : hexc('#7fd0f0')) : x < 15 ? hexc('#4aa8e8') : hexc('#2a6fb8')); }
+  p.set(13, 4, hexc('#ffffff'));
+  // drawstring and bow
+  for (let x = 8; x < 23; x++) p.set(x, 12, GOLD[x % 2 ? 4 : 2]);
+  p.set(6, 13, GOLD[3]); p.set(5, 14, GOLD[2]); p.set(24, 13, GOLD[3]); p.set(25, 14, GOLD[2]);
+  p.outline();
+} };
+
+/** A stubby candle whose flame stands for the streak. */
+SPR.candle = { w: 18, h: 30, paint(p) {
+  p.each((x, y) => {
+    if (y >= 12 && y < 28 && x >= 5 && x < 13) return WAX[x < 7 ? 4 : x > 10 ? 1 : 2 + (y < 14 ? 1 : 0)];
+    if (y >= 27 && x >= 2 && x < 16) return y === 27 ? GOLD[4] : GOLD[2];
+    return null;
+  });
+  for (let y = 1; y < 12; y++) for (let x = 5; x < 13; x++) { const dx = Math.abs(x + 0.5 - 9), w = Math.sin(((y - 1) / 11) * Math.PI) * 3.4 * ((y - 1) / 11 + 0.3); if (dx > w) continue; p.set(x, y, dx < w * 0.4 && y > 5 ? hexc('#fff6c4') : y > 8 ? hexc('#ffb02e') : hexc('#ff7a2a')); }
+  p.set(9, 11, INK);
+  p.outline();
+} };
+
 // ---------------------------------------------------------------- CSS
 
 /** CSS px per art pixel. 2 keeps the pixel art fine-grained; the device factor makes it sharp. */

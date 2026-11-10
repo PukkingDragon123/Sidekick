@@ -1,6 +1,7 @@
 import { hasSprite, spriteURL } from '../tbme/sprites.js';
 import goofy from '../tbme/fonts/TBMEGoofy-Regular.woff2?url';
 import { woodCss } from './woodkit.ts';
+import { TITLE_CSS } from './title.tsx';
 // Pixel-art UI kit. Frames are painted pixel by pixel at 1x and used as nine-slice border images;
 // icons are hand-drawn 12x12 sprites. Everything shares the forest's palette.
 export const PAL: Record<string, string> = {
@@ -164,7 +165,7 @@ export function installSkin() {
   // the handcrafted wood kit and the game font sit on top of the base styles
   const st = document.createElement('style');
   st.id = 'woodkit';
-  st.textContent = `@font-face{font-family:'TBME Goofy';src:url(${goofy}) format('woff2');font-display:block}` + woodCss() + EXTRA;
+  st.textContent = `@font-face{font-family:'TBME Goofy';src:url(${goofy}) format('woff2');font-display:block}` + woodCss() + EXTRA + TITLE_CSS;
   document.head.appendChild(st);
   const fit = () => root.setProperty('--u', (innerWidth < 380 ? 2 : innerWidth >= 1700 ? 4 : 3) + 'px');
   fit();
@@ -190,4 +191,16 @@ img.ico{width:32px;height:32px;image-rendering:pixelated}img.ico.s{width:22px;he
 .tok .lab{margin-top:-8px;padding:1px 8px 2px;background:#f6e7c3;border:2px solid #24150d;box-shadow:0 2px 0 #b5935c;font-size:15px;line-height:1.1;transform:rotate(-2deg);white-space:nowrap}
 .tok:nth-child(even) .lab{transform:rotate(2deg)}
 .tok .badge{top:-4px;right:2px}
+.wallet-hud{display:flex;align-items:flex-start;gap:2px;pointer-events:auto}
+.wallet-hud button{border:0;padding:0;background:transparent no-repeat 0 0/100% 100%;image-rendering:pixelated;cursor:pointer;position:relative;filter:drop-shadow(0 3px 0 #24150d66)}
+.wallet{animation:walletBump .45s steps(5)}
+.wnum{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-family:'TBME Goofy';font-size:24px;color:#ffe08a;text-shadow:0 2px 0 #4a2112,2px 0 0 #2a120a,-2px 0 0 #2a120a,0 -2px 0 #2a120a,0 3px 0 #2a120a;letter-spacing:1px}
+.wsmall{display:flex;flex-direction:column;align-items:center;gap:2px;margin-left:-6px}
+.wsmall .candle{margin-top:-4px}
+.wtag{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);min-width:26px;padding:0 5px;background:#f6e7c3;border:2px solid #24150d;box-shadow:0 2px 0 #b5935c;font-family:'TBME Goofy';font-size:15px;line-height:17px;color:#3b2212;white-space:nowrap}
+.link-dot{width:28px;height:28px;display:grid;place-items:center;margin-top:6px}
+.link-dot img.ico.s{width:20px;height:20px}
+@keyframes walletBump{40%{transform:translateY(-6px) rotate(-3deg)}70%{transform:translateY(2px) rotate(1deg)}}
+@media (max-width:420px){.wallet-hud{transform:scale(.86);transform-origin:top right}}
+
 `;

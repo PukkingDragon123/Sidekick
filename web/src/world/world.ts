@@ -184,6 +184,15 @@ export class World {
     this.blockers = [...this.plan.colliders, ...this.garden.colliders];
     for (const a of this.actors.values()) if (a.visible && a.action !== 'walk') this.blockers.push({ x: a.pos.x, z: a.pos.z, r: 0.5 });
     for (const a of this.actors.values()) a.update(dt, t);
+    // grass physics: each animal presses the plants around it; the press eases in and springs back out
+    let pi = 0;
+    for (const a of this.actors.values()) {
+      if (pi >= 6) break;
+      const target = a.visible ? (a.action === 'walk' ? 1 : a.action === 'sit' || a.action === 'sleep' || a.action === 'eat' ? 1.25 : 0.7) : 0;
+      a.press += (target - a.press) * Math.min(1, dt * (target > a.press ? 10 : 3));
+      wind.uPush.value[pi++].set(a.pos.x, a.pos.z, 0.95, a.press);
+    }
+    while (pi < 6) wind.uPush.value[pi++].set(0, 0, 0, 0);
     const spots = [...this.actors.values()].filter((a) => a.visible).map((a) => a.pos);
     this.critters.update(dt, t, spots, this.sky.night, wind.uWind.value.x, wind.uWind.value.y, gust);
     this.garden.update(dt, t, this.sky.night);
