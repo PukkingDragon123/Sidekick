@@ -32,7 +32,7 @@ function formatter(tz: string): Intl.DateTimeFormat {
   return f;
 }
 
-export function isValidTz(tz: unknown): tz is string {
+export function isValidTz(tz: unknown): boolean {
   if (typeof tz !== 'string' || !tz || tz.length > 64) return false;
   try {
     formatter(tz);
@@ -44,7 +44,7 @@ export function isValidTz(tz: unknown): tz is string {
 
 /** A usable zone: the given one if valid, otherwise the fallback (UTC by default). */
 export function safeTz(tz: unknown, fallback = 'UTC'): string {
-  return isValidTz(tz) ? tz : fallback;
+  return typeof tz === 'string' && isValidTz(tz) ? tz : fallback;
 }
 
 export function localParts(ms: number, tz: string): LocalParts {

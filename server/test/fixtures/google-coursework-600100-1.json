@@ -1,0 +1,51 @@
+{
+  "courseWork": [
+    {
+      "courseId": "600100",
+      "id": "700001",
+      "title": "Worksheet 7.2: Factoring",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700001/details",
+      "creationTime": "2026-11-05T15:00:00.000Z",
+      "updateTime": "2026-11-05T15:00:00.000Z",
+      "workType": "ASSIGNMENT",
+      "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+      "assigneeMode": "ALL_STUDENTS",
+      "creatorUserId": "104512345678901234567",
+      "dueDate": {
+        "year": 2026,
+        "month": 11,
+        "day": 12
+      },
+      "dueTime": {
+        "hours": 16,
+        "minutes": 59
+      },
+      "description": "Problems 1-20. Show your work.\n\nCalculators allowed.",
+      "maxPoints": 20
+    },
+    {
+      "courseId": "600100",
+      "id": "700002",
+      "title": "Unit 3 Quiz",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700002/details",
+      "creationTime": "2026-11-05T15:00:00.000Z",
+      "updateTime": "2026-11-05T15:00:00.000Z",
+      "workType": "MULTIPLE_CHOICE_QUESTION",
+      "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+      "assigneeMode": "ALL_STUDENTS",
+      "creatorUserId": "104512345678901234567",
+      "dueDate": {
+        "year": 2026,
+        "month": 11,
+        "day": 13
+      },
+      "dueTime": {
+        "hours": 5
+      },
+      "maxPoints": 50
+    }
+  ],
+  "nextPageToken": "cw-page-2"
+}

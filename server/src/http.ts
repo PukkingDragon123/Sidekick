@@ -36,10 +36,51 @@ function describe(error: z.ZodError): string {
   return `Invalid ${where}: ${issue.message}`;
 }
 
+const KB = 1024;
+/** Request body ceilings by path. The save is the only large thing a client sends. */
+const BODY_LIMITS: Record<string, number> = {
+  '/api/state': 2 * KB * KB,
+  '/api/billing/webhook': 512 * KB,
+};
+const DEFAULT_BODY_LIMIT = 64 * KB;
+
+export function bodyLimitFor(c: Context): number {
+  return BODY_LIMITS[new URL(c.req.url).pathname] ?? DEFAULT_BODY_LIMIT;
+}
+
+const tooLarge = (): HttpError => new HttpError(413, 'That request is too large', 'too_large');
+
+/**
+ * The request body as text, never buffering more than the limit for this route. A declared
+ * Content-Length over the limit is refused up front; a body without one (chunked) is cut
+ * off as soon as it runs over.
+ */
+export async function readBody(c: Context): Promise<string> {
+  const limit = bodyLimitFor(c);
+  if (Number(c.req.header('content-length') ?? 0) > limit) throw tooLarge();
+  const body = c.req.raw.body;
+  if (!body) return '';
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > limit) {
+      await reader.cancel().catch(() => {});
+      throw tooLarge();
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 export async function readJson<T extends z.ZodTypeAny>(c: Context, schema: T): Promise<z.infer<T>> {
+  const text = await readBody(c);
   let raw: unknown;
   try {
-    raw = await c.req.json();
+    raw = JSON.parse(text);
   } catch {
     throw new HttpError(400, 'Request body must be JSON', 'invalid_json');
   }

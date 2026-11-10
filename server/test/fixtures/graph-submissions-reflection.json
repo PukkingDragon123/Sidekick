@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#education/classes('2c1b7f4e-0d6a-4f0e-9b52-7c9f6b9d2a41')/assignments('6b2e1d3f-8e4c-4f7a-9b0c-1d2e3f4a5b6c')/submissions",
+  "value": [
+    {
+      "status": "reassigned",
+      "submittedDateTime": null,
+      "unsubmittedDateTime": null,
+      "returnedDateTime": null,
+      "reassignedDateTime": null,
+      "excusedDateTime": null,
+      "resourcesFolderUrl": null,
+      "id": "d1bee293-d8bb-48d4-af3e-c8cb0e3c7fe7",
+      "recipient": {
+        "@odata.type": "#microsoft.graph.educationSubmissionIndividualRecipient",
+        "userId": "f4a9c7d2-6a1b-4c3e-8f5d-0b9e2a7c1d34"
+      }
+    }
+  ]
+}

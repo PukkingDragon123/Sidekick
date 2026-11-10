@@ -1,0 +1,60 @@
+{
+  "courseWork": [
+    {
+      "courseId": "600100",
+      "id": "700003",
+      "title": "Chapter 7 reading notes",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700003/details",
+      "creationTime": "2026-11-05T15:00:00.000Z",
+      "updateTime": "2026-11-05T15:00:00.000Z",
+      "workType": "ASSIGNMENT",
+      "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+      "assigneeMode": "ALL_STUDENTS",
+      "creatorUserId": "104512345678901234567"
+    },
+    {
+      "courseId": "600100",
+      "id": "700004",
+      "title": "Old homework from September",
+      "state": "PUBLISHED",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700004/details",
+      "creationTime": "2026-08-25T15:00:00.000Z",
+      "updateTime": "2026-11-05T15:00:00.000Z",
+      "workType": "ASSIGNMENT",
+      "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+      "assigneeMode": "ALL_STUDENTS",
+      "creatorUserId": "104512345678901234567",
+      "dueDate": {
+        "year": 2026,
+        "month": 9,
+        "day": 1
+      },
+      "dueTime": {
+        "hours": 21
+      },
+      "maxPoints": 10
+    },
+    {
+      "courseId": "600100",
+      "id": "700005",
+      "title": "Unpublished draft",
+      "state": "DRAFT",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700005/details",
+      "creationTime": "2026-11-05T15:00:00.000Z",
+      "updateTime": "2026-11-05T15:00:00.000Z",
+      "workType": "ASSIGNMENT",
+      "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+      "assigneeMode": "ALL_STUDENTS",
+      "creatorUserId": "104512345678901234567",
+      "dueDate": {
+        "year": 2026,
+        "month": 11,
+        "day": 30
+      },
+      "dueTime": {
+        "hours": 21
+      }
+    }
+  ]
+}

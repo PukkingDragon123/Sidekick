@@ -1,0 +1,20 @@
+{
+  "courses": [
+    {
+      "id": "600100",
+      "name": "Algebra 1",
+      "section": "Period 4",
+      "ownerId": "104512345678901234567",
+      "creationTime": "2026-08-20T14:02:11.123Z",
+      "updateTime": "2026-11-01T09:00:00.000Z",
+      "enrollmentCode": "abc12de",
+      "courseState": "ACTIVE",
+      "alternateLink": "https://classroom.google.com/c/600100",
+      "teacherGroupEmail": "Algebra_1_teachers_1a2b@school.example",
+      "courseGroupEmail": "Algebra_1_1a2b@school.example",
+      "guardiansEnabled": false,
+      "calendarId": "c_classroom1a2b@group.calendar.google.com"
+    }
+  ],
+  "nextPageToken": "courses-page-2"
+}

@@ -234,8 +234,9 @@ export class Db {
     return r ? device(r) : null;
   }
 
+  /** In the order they joined (rowid is insertion order; timestamps can tie). */
   devices(accountId: string): DeviceRow[] {
-    return this.#all('SELECT * FROM devices WHERE account_id = ? ORDER BY created_at, id', accountId).map(device);
+    return this.#all('SELECT * FROM devices WHERE account_id = ? ORDER BY rowid', accountId).map(device);
   }
 
   touchDevice(id: string, now: number): void {
@@ -285,7 +286,7 @@ export class Db {
   // ---- integrations -------------------------------------------------------
 
   integrations(accountId: string): IntegrationRow[] {
-    return this.#all('SELECT * FROM integrations WHERE account_id = ? ORDER BY created_at, id', accountId).map(integration);
+    return this.#all('SELECT * FROM integrations WHERE account_id = ? ORDER BY rowid', accountId).map(integration);
   }
 
   integration(id: string): IntegrationRow | null {
@@ -376,7 +377,7 @@ export class Db {
   }
 
   pushSubs(accountId: string): PushSubRow[] {
-    return this.#all('SELECT * FROM push_subs WHERE account_id = ? ORDER BY created_at, endpoint', accountId).map((r) => ({
+    return this.#all('SELECT * FROM push_subs WHERE account_id = ? ORDER BY rowid', accountId).map((r) => ({
       endpoint: r.endpoint as string,
       accountId: r.account_id as string,
       deviceId: (r.device_id as string | null) ?? null,

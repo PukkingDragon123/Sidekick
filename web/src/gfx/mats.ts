@@ -96,7 +96,7 @@ export function wood(c: Tint, o: WoodOpts = {}): Painter {
       return tone(r, L);
     }
     const ac = Math.floor(g.across + 0.01);
-    const p = Math.floor(ac / pw), inP = ac - p * pw;
+    const p = pw > 0 ? Math.floor(ac / pw) : 0, inP = ac - p * pw;
     if (pw > 0) {
       if (inP === 0 && ac > 0) L -= 1.7;
       else if (inP === 1 || (inP === 0 && ac === 0)) L += 0.45;

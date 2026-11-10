@@ -1,0 +1,72 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:icalendar-ruby
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Mina Suzuki Calendar (Canvas)
+X-WR-CALDESC:Calendar events for the user\, Mina Suzuki
+X-WR-TIMEZONE:America/Chicago
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-assignment-481516
+DTSTART:20261113T055900Z
+DTEND:20261113T055900Z
+CLASS:PUBLIC
+DESCRIPTION:Write a 600-word response to chapters 4\, 5 and 6.\n\nUse at le
+ ast two quotes\; cite page numbers. Rubric: https://canvas.example.edu/cou
+ rses/1201/assignments/481516
+SEQUENCE:0
+SUMMARY:Reading Response 3: The Giver [ENG 9 - Period 2]
+URL:https://canvas.example.edu/calendar?include_contexts=course_1201&month=
+ 11&year=2026#assignment_481516
+X-ALT-DESC;FMTTYPE=text/html:<p>Write a 600-word response to chapters 4\, 5
+  and 6.</p>
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-assignment-481600
+DTSTART;VALUE=DATE:20261116
+DTEND;VALUE=DATE:20261116
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:Unit 3 Quiz [ALG1-04]
+URL:https://canvas.example.edu/calendar?include_contexts=course_1187&month=11&year=2026#assignment_481600
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-calendar-event-9911
+DTSTART;TZID=America/New_York:20261112T153000
+DTEND;TZID=America/New_York:20261112T163000
+CLASS:PUBLIC
+LOCATION:Room 214
+SUMMARY:Science fair project check-in [SCI 9]
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:This is an event reminder
+SUMMARY:Alarm notification
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-assignment-470001
+DTSTART:20261020T045900Z
+DTEND:20261020T045900Z
+SUMMARY:Old worksheet from October [ALG1-04]
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-assignment-481777
+DTSTART:20261119T180000
+DTEND:20261119T180000
+STATUS:CANCELLED
+SUMMARY:Cancelled field trip form [SCI 9]
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20261110T081500Z
+UID:event-assignment-481800
+DTSTART:20261120T170000
+SUMMARY:Poster draft [ART 1]
+URL:javascript:alert(1)
+END:VEVENT
+END:VCALENDAR

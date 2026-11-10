@@ -21,6 +21,7 @@ export class Hub {
   readonly #conns = new Map<WebSocket, Conn>();
   /** device id -> last time it did anything (connected, sent a message, made an API call) */
   readonly #active = new Map<string, number>();
+  #closed = false;
 
   constructor(db: Db, now: () => number) {
     this.#db = db;
@@ -67,6 +68,7 @@ export class Hub {
     const conn = this.#conns.get(ws);
     if (!conn) return;
     this.#conns.delete(ws);
+    if (this.#closed) return; // shutting down: the database may already be gone
     const { accountId } = conn.device;
     const set = this.#accounts.get(accountId);
     set?.delete(conn);
@@ -78,7 +80,7 @@ export class Hub {
 
   handle(ws: WebSocket, raw: string): void {
     const conn = this.#conns.get(ws);
-    if (!conn) return;
+    if (!conn || this.#closed) return;
     let msg: WsClientMsg;
     try {
       msg = clientMsg.parse(JSON.parse(raw));
@@ -161,7 +163,11 @@ export class Hub {
     if (conn) conn.alive = true;
   }
 
+  /** Drop every connection without the usual bookkeeping. Used when the server stops. */
   closeAll(): void {
+    this.#closed = true;
     for (const conn of [...this.#conns.values()]) conn.ws.terminate();
+    this.#conns.clear();
+    this.#accounts.clear();
   }
 }

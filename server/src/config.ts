@@ -25,6 +25,12 @@ export interface Config {
   staticDir: string | null;
   authRateMax: number;
   authRateWindowMs: number;
+  /**
+   * Require the OAuth callback to arrive in the same browser that asked for the consent URL
+   * (checked with a short-lived cookie). Off only for clients that hand the consent page to
+   * a different browser than the one holding the device token.
+   */
+  oauthBrowserBinding: boolean;
   google: { clientId: string; clientSecret: string } | null;
   microsoft: { clientId: string; clientSecret: string; tenant: string } | null;
   ai: {
@@ -128,6 +134,7 @@ export function loadConfig(env: Env = process.env): Config {
     staticDir: path.join(REPO_ROOT, 'web', 'dist'),
     authRateMax: int(env, 'AUTH_RATE_MAX', 30, 1),
     authRateWindowMs: 10 * 60_000,
+    oauthBrowserBinding: bool(env, 'OAUTH_BROWSER_BINDING', true),
     google: gId && gSecret ? { clientId: gId, clientSecret: gSecret } : null,
     microsoft: mId && mSecret ? { clientId: mId, clientSecret: mSecret, tenant: str(env, 'MS_TENANT') ?? 'organizations' } : null,
     ai: {

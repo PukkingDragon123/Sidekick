@@ -1,0 +1,29 @@
+{
+  "studentSubmissions": [
+    {
+      "courseId": "600100",
+      "courseWorkId": "700001",
+      "id": "Cg1",
+      "userId": "118234567890123456789",
+      "creationTime": "2026-11-05T15:00:01.000Z",
+      "updateTime": "2026-11-09T18:22:00.000Z",
+      "state": "TURNED_IN",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700001/submissions/student/1",
+      "courseWorkType": "ASSIGNMENT",
+      "assignmentSubmission": {}
+    },
+    {
+      "courseId": "600100",
+      "courseWorkId": "700002",
+      "id": "Cg2",
+      "userId": "118234567890123456789",
+      "creationTime": "2026-11-05T15:00:01.000Z",
+      "updateTime": "2026-11-09T18:22:00.000Z",
+      "state": "CREATED",
+      "alternateLink": "https://classroom.google.com/c/600100/a/700002/submissions/student/2",
+      "courseWorkType": "ASSIGNMENT",
+      "assignmentSubmission": {}
+    }
+  ],
+  "nextPageToken": "sub-page-2"
+}

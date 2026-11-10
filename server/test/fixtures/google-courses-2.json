@@ -1,0 +1,33 @@
+{
+  "courses": [
+    {
+      "id": "600200",
+      "name": "English 9",
+      "ownerId": "104512345678901234567",
+      "creationTime": "2026-08-20T14:02:11.123Z",
+      "updateTime": "2026-11-01T09:00:00.000Z",
+      "enrollmentCode": "abc12de",
+      "courseState": "ACTIVE",
+      "alternateLink": "https://classroom.google.com/c/600200",
+      "teacherGroupEmail": "English_9_teachers_1a2b@school.example",
+      "courseGroupEmail": "English_9_1a2b@school.example",
+      "guardiansEnabled": false,
+      "calendarId": "c_classroom1a2b@group.calendar.google.com"
+    },
+    {
+      "id": "600300",
+      "name": "Biology",
+      "section": "Lab B",
+      "ownerId": "104512345678901234567",
+      "creationTime": "2026-08-20T14:02:11.123Z",
+      "updateTime": "2026-11-01T09:00:00.000Z",
+      "enrollmentCode": "abc12de",
+      "courseState": "ACTIVE",
+      "alternateLink": "https://classroom.google.com/c/600300",
+      "teacherGroupEmail": "Biology_teachers_1a2b@school.example",
+      "courseGroupEmail": "Biology_1a2b@school.example",
+      "guardiansEnabled": false,
+      "calendarId": "c_classroom1a2b@group.calendar.google.com"
+    }
+  ]
+}

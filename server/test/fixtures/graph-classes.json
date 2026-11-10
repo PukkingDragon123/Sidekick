@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#education/me/classes(id,displayName)",
+  "value": [
+    {
+      "id": "11014090-835f-4aa5-ac8f-a0ab6c9f1b10",
+      "displayName": "Chemistry 10B"
+    },
+    {
+      "id": "2c1b7f4e-0d6a-4f0e-9b52-7c9f6b9d2a41",
+      "displayName": "World History"
+    }
+  ]
+}

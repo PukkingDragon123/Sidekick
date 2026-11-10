@@ -4,6 +4,7 @@ import { SPECIES } from '@shared/types.ts';
 import { SPECIES_INFO } from '@shared/species.ts';
 import type { SheetItem } from './sheet.ts';
 import { buildAnimal, type EyeFrame, type MouthFrame } from './assets/animals.ts';
+import { buildProp, propMesh } from './gfx/box.ts';
 
 export const lookOf = (s: SpeciesId, o: Partial<Look> = {}): Look => ({ species: s, ...SPECIES_INFO[s].look, ...o });
 
@@ -39,6 +40,12 @@ export async function sheet(name: string, q: URLSearchParams): Promise<SheetItem
     const eyes: EyeFrame[] = ['open', 'half', 'closed', 'happy', 'wide', 'angry', 'sad', 'heart', 'star', 'dizzy'];
     const mouths: MouthFrame[] = ['smile', 'neutral', 'open1', 'open2', 'grin', 'o', 'frown', 'cat', 'chew1', 'blep'];
     return eyes.map((e, i) => animal(e, lookOf(i % 2 ? 'cat' : 'fox', { eyeStyle: (['sharp', 'round', 'sparkle', 'sleepy', 'dot'] as const)[i % 5] }), {}, e, mouths[i]));
+  }
+  if (name === 'furniture' || name === 'food') {
+    const F = await import('./assets/furniture.ts');
+    const only = q.get('only')?.split(',');
+    const list = name === 'food' ? F.FOODS : F.FURNITURE;
+    return list.filter((i) => !only || only.includes(i.id)).map((i) => ({ name: i.id, obj: propMesh(buildProp(i.build())) }));
   }
   return [];
 }

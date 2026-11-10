@@ -20,7 +20,7 @@ export type MouthFrame = (typeof MOUTH_FRAMES)[number];
 const OPEN: Record<EyeStyle, [string[], string[]]> = {
   round: [['.KKK.', 'KWWKK', 'KWJJK', 'KJIIK', 'KIiiK', '.KKK.'], ['.KKK.', 'KWWKK', 'KWJJK', 'KJIIK', 'KIiiK', '.KKK.']],
   sparkle: [['.KKK.', 'KWWJK', 'KWJJK', 'KJIIK', 'KIiWK', '.KKK.'], ['.KKK.', 'KWWJK', 'KWJJK', 'KJIIK', 'KIiWK', '.KKK.']],
-  sleepy: [['.....', 'KKKKK', 'KWJJK', 'KJIIK', '.KKK.', '.....'], ['.....', 'KKKKK', 'KWJJK', 'KJIIK', '.KKK.', '.....']],
+  sleepy: [['.....', '.....', 'KKKKK', 'KWJIK', '.KKK.', '.....'], ['.....', '.....', 'KKKKK', 'KWJIK', '.KKK.', '.....']],
   sharp: [['KK...', 'KKKK.', 'KWJJK', 'KJIIK', '.KKK.', '.....'], ['...KK', '.KKKK', 'KWJJK', 'KJIIK', '.KKK.', '.....']],
   dot: [['.....', '.PPP.', '.WPP.', '.PPP.', '.....', '.....'], ['.....', '.PPP.', '.WPP.', '.PPP.', '.....', '.....']],
 };
@@ -41,7 +41,7 @@ const EYE_ART: Record<Exclude<EyeFrame, 'open'>, [string[], string[]]> = {
 const MOUTH_ART: Record<MouthFrame, string[]> = {
   smile: ['.....', 'K...K', '.KKK.'], neutral: ['.....', '.KKK.', '.....'], open1: ['.....', '.KKK.', '.RTR.'],
   open2: ['KKKKK', 'KRRRK', '.TTT.'], grin: ['KKKKK', 'KWWWK', '.KKK.'], o: ['..K..', '.KRK.', '..K..'],
-  frown: ['.....', '.KKK.', 'K...K'], cat: ['.....', 'K.K.K', '.K.K.'], chew1: ['.....', '.KKK.', '..K..'],
+  frown: ['.....', '.KKK.', 'K...K'], cat: ['.....', '.K.K.', '..K..'], chew1: ['.....', '.KKK.', '..K..'],
   chew2: ['.....', 'KKKKK', '.....'], blep: ['.....', 'K...K', '.KTK.'],
 };
 
@@ -120,7 +120,7 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
     const limb = tag === 'arm' || tag === 'leg';
     const hand = limb && t.by < 2.2 || tag === 'foot';
     if (tag === 'snout' || tag === 'chest') return 1;
-    if (tag === 'cheek') return sp === 'cat' ? 0 : 1;
+    if (tag === 'cheek') return sp !== 'cat' && t.z > g.hf - 5.2 && t.y < g.neck + 4.6 ? 1 : 0;
     if (tag === 'tailTip') return pat === 'socks' ? (sp === 'fox' ? 1 : 2) : sp === 'bunny' ? 1 : 0;
     if (tag === 'earTip') return pat === 'socks' || sp === 'redpanda' ? 2 : 0;
     if (tag === 'gill') return t.bx < 1 || t.bx > t.sx - 1 ? 1 : 2;
@@ -146,6 +146,7 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
         if (ax > 2 && ax < 4.5 && t.y >= eyeHi && t.y < eyeHi + 1.2) return 1;
         if (ax > 4.8 && ax < 6 && t.y < eyeLo + 1 && t.y > g.neck + 1) return 2;
       }
+      if ((sp === 'fox' || sp === 'raccoon') && ax > 4.4 && t.y < g.neck + 3.6) return 1;
       if (pat === 'mask' && sp !== 'redpanda' && inEyes && ax > 0.9 && ax < g.hw / 2 - 0.2) return 2;
       if (pat === 'stripes' && t.y > eyeHi + 0.4 && (Math.floor(t.x + 100.5) % 3 === 0) && ax < 4) return 2;
     }
@@ -180,6 +181,8 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
     if (L.blush && tag === 'head' && t.face === 4 && t.y >= eyeLo - 1.6 && t.y < eyeLo - 0.4 && Math.abs(Math.abs(t.x) - g.eyeDx - 1.5) < 1.1) return tone(blush, 0.3);
     if (sp === 'frog' && tag === 'head' && t.face === 4 && Math.abs(Math.abs(t.x) - 1.5) < 0.6 && Math.abs(t.y - (g.neck + 5.5)) < 0.6) return tone(base, -2.5);
     const m = mark(t);
+    // whisker dots on the muzzle
+    if (tag === 'snout' && t.face === 4 && t.v === 1 && (t.u === 0 || t.u === t.w - 1)) return tone(two, -2.2);
     return tone(m === 1 ? two : m === 2 ? acc : base, L2);
   };
 }
@@ -211,7 +214,7 @@ function skeleton(g: ReturnType<typeof geoFor>): Record<string, BoneSpec> {
 /** Rest-pose bone rotations in degrees (animations are layered on top of these). */
 export type Rest = Record<string, Vec3>;
 
-function species(P: AnimalParts, fur: Painter, look: Look): Rest {
+function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest {
   const g = P.g, n = g.neck, s = look.species;
   const ears = look.ears === 'auto' ? s : look.ears, tail = look.tail === 'auto' ? s : look.tail;
   const rest: Rest = { armL: [0, 0, -7], armR: [0, 0, 7] };
@@ -235,20 +238,16 @@ function species(P: AnimalParts, fur: Painter, look: Look): Rest {
   const snout = (w: number, h: number, d: number, noseW: number, noseH = 2) => {
     P.add('head', b(0, n, g.hf + d / 2, w, h, d, 'snout', { skip: 'n' }), b(0, n + h - noseH, g.hf + d + 0.5, noseW, noseH, 1, 'nose', { skip: 'n' }));
   };
-  /** Cheek ruff: a slab of fur with small spikes swept back and up. */
-  const cheeks = (w: number, h: number, tuft = true) => both((sd) => {
+  /** Cheek ruff: a slab that rounds the jaw, plus one small spike of fur swept back. */
+  const cheeks = (_w: number, h: number, tuft = true) => both((sd) => {
     const x = sd * (g.hw / 2), sk = sd > 0 ? 'w' : 'e';
-    P.add('head', b(x + sd * 0.5, n + 1, g.hz + 0.5, 1, h, 7, 'cheek', { skip: sk }));
-    if (tuft) {
-      P.add('head', { ...b(x + sd * 1.2, n + 1, g.hz - 1, 2, 2, 3, 'cheek'), rot: [0, sd * 24, sd * 10] },
-        { ...b(x + sd * 1.3, n + 3, g.hz - 2.2, 2, 2, 2, 'cheek'), rot: [0, sd * 30, sd * 28] },
-        { ...b(x + sd * 1.0, n + 2, g.hz + 2.5, 1, 2, 2, 'cheek'), rot: [0, 0, sd * 16] });
-    }
+    P.add('head', b(x + sd * 0.5, n, g.hz + 0.5, 1, h + 1, 9, 'cheek', { skip: sk }));
+    if (tuft) P.add('head', { ...b(x + sd * 0.9, n + 1, g.hz + 1.5, 1, 3, 4, 'cheek'), rot: [0, sd * 20, sd * 12] }, { ...b(x + sd * 0.8, n + 2, g.hz - 2.5, 1, 2, 3, 'cheek'), rot: [0, sd * 30, sd * 20] });
   });
   const round = () => both((sd) => P.add('head', b(sd * (g.hw / 2 + 0.5), n + 1, g.hz + 0.5, 1, g.hh - 5, g.hd - 3, 'head', { skip: sd > 0 ? 'w' : 'e' })));
   /** A little crest of fur on the forehead. */
   const tuft = (tag = 'head') => P.add('head', { ...b(-1, n + g.hh, g.hf - 2.5, 2, 2, 2, tag), rot: [18, 0, 14] }, { ...b(1.2, n + g.hh, g.hf - 3, 2, 3, 2, tag), rot: [10, 0, -12] });
-  const fluff = (y: number) => P.add('body', b(0, y, g.bd / 2 + 0.5, 5, 3, 1, 'chest', { skip: 'n' }), b(0, y - 1.5, g.bd / 2 + 0.8, 3, 2, 1, 'chest', { skip: 'n' }));
+  const fluff = (y: number) => bare && P.add('body', b(0, y, g.bd / 2 + 0.5, 5, 3, 1, 'chest', { skip: 'n' }), b(0, y - 1.5, g.bd / 2 + 0.8, 3, 2, 1, 'chest', { skip: 'n' }));
   switch (s) {
     case 'fox': snout(6, 4, 4, 2); cheeks(2, 4); tuft(); fluff(g.legH + g.bh - 4); break;
     case 'cat': P.add('head', b(0, n + 3, g.hf + 0.5, 2, 1, 1, 'nose', { skip: 'n' })); cheeks(1, 4, false); round(); tuft(); break;
@@ -262,14 +261,14 @@ function species(P: AnimalParts, fur: Painter, look: Look): Rest {
     case 'axolotl': round(); break;
   }
   // a soft belly bulge keeps the torso from being a plain box
-  P.add('body', b(0, g.legH + 0.5, g.bd / 2 + 0.5, g.bw - 2, g.bh - 4, 1, 'body', { skip: 'n' }));
+  if (bare) P.add('body', b(0, g.legH + 0.5, g.bd / 2 + 0.5, g.bw - 2, g.bh - 4, 1, 'body', { skip: 'n' }));
 
   // ears
   const ey = n + g.hh - 1;
   both((sd, bn) => {
     const e = bn('ear'), x = sd * (g.hw / 2 - 2.5);
     switch (ears) {
-      case 'fox': P.add(e, b(x, ey, g.hz, 5, 3, 2, 'ear'), b(x, ey + 3, g.hz, 3, 3, 2, 'earTip'), b(x, ey + 6, g.hz, 1, 2, 2, 'earTip')); rest[e] = [0, 0, -sd * 10]; break;
+      case 'fox': P.add(e, b(x, ey, g.hz, 5, 2, 2, 'ear'), b(x, ey + 2, g.hz, 4, 2, 2, 'ear'), b(x, ey + 4, g.hz, 3, 2, 2, 'earTip'), b(x, ey + 6, g.hz, 1, 1, 2, 'earTip')); rest[e] = [0, 0, -sd * 12]; break;
       case 'cat': P.add(e, b(x, ey, g.hz, 4, 3, 2, 'ear'), b(x, ey + 3, g.hz, 2, 2, 2, 'earTip')); rest[e] = [0, 0, -sd * 8]; break;
       case 'bunny': P.add(e, b(sd * 3, ey, g.hz - 0.5, 3, 11, 2, 'ear'), b(sd * 3, ey + 11, g.hz - 0.5, 2, 1, 2, 'earTip')); rest[e] = [-6, 0, -sd * 9]; break;
       case 'lop': P.add(e, b(sd * 3, ey, g.hz - 0.5, 3, 5, 2, 'ear'), { ...b(sd * 3, ey + 4, g.hz - 0.5, 3, 7, 2, 'ear'), rot: [0, 0, -sd * 140], pivot: [sd * 3, ey + 5, g.hz - 0.5] }); rest[e] = [0, 0, -sd * 14]; break;
@@ -318,7 +317,7 @@ export function buildAnimal(look: Look, outfit: Outfit = {}): Animal {
   const bones = skeleton(g);
   const P: AnimalParts = { bones, g, add: (bone, ...boxes) => { bones[bone].boxes.push(...boxes); } };
   const fur = furPainter(look, g);
-  const rest = species(P, fur, look);
+  const rest = species(P, fur, look, !outfit.body);
   dressUp(P, outfit, look);
   const rig = buildRig(Object.values(bones));
   for (const [name, r] of Object.entries(rest)) rig.bones[name]?.rotation.set((r[0] * Math.PI) / 180, (r[1] * Math.PI) / 180, (r[2] * Math.PI) / 180);

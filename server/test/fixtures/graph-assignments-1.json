@@ -1,0 +1,99 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#education/me/assignments(submissions())",
+  "@odata.nextLink": "https://graph.microsoft.com/v1.0/education/me/assignments?$expand=submissions&$top=50&$skiptoken=page-two",
+  "value": [
+    {
+      "classId": "11014090-835f-4aa5-ac8f-a0ab6c9f1b10",
+      "displayName": "Titration lab report",
+      "closeDateTime": null,
+      "dueDateTime": "2026-11-12T16:59:59.999Z",
+      "assignDateTime": null,
+      "assignedDateTime": "2026-11-03T08:00:00Z",
+      "allowLateSubmissions": true,
+      "resourcesFolderUrl": null,
+      "feedbackResourcesFolderUrl": null,
+      "createdDateTime": "2026-11-02T10:15:42.123Z",
+      "lastModifiedDateTime": "2026-11-03T08:00:00Z",
+      "allowStudentsToAddResourcesToSubmission": true,
+      "status": "assigned",
+      "notificationChannelUrl": null,
+      "webUrl": "https://teams.microsoft.com/l/entity/66aeee93-507d-479a-a3ef-8f494af43945/classroom?context=%7B%22subEntityId%22%3A%229018ae7d-8a31-49ee-a0ea-5ada52cdbe5f%22%7D",
+      "addToCalendarAction": "none",
+      "addedStudentAction": "none",
+      "id": "9018ae7d-8a31-49ee-a0ea-5ada52cdbe5f",
+      "instructions": {
+        "content": "<p>Write up the <b>titration</b> lab.</p><ul><li>Data table</li><li>Error analysis &amp; sources</li></ul>",
+        "contentType": "html"
+      },
+      "grading": {
+        "@odata.type": "#microsoft.graph.educationAssignmentPointsGradeType",
+        "maxPoints": 40
+      },
+      "assignTo": {
+        "@odata.type": "#microsoft.graph.educationAssignmentClassRecipient"
+      },
+      "submissions@odata.context": "https://graph.microsoft.com/v1.0/$metadata#education/me/assignments('9018ae7d-8a31-49ee-a0ea-5ada52cdbe5f')/submissions",
+      "submissions": [
+        {
+          "status": "working",
+          "submittedDateTime": null,
+          "unsubmittedDateTime": null,
+          "returnedDateTime": null,
+          "reassignedDateTime": null,
+          "excusedDateTime": null,
+          "resourcesFolderUrl": null,
+          "id": "d1bee293-d8bb-48d4-af3e-c8cb0e3c7fe7",
+          "recipient": {
+            "@odata.type": "#microsoft.graph.educationSubmissionIndividualRecipient",
+            "userId": "f4a9c7d2-6a1b-4c3e-8f5d-0b9e2a7c1d34"
+          }
+        }
+      ]
+    },
+    {
+      "classId": "2c1b7f4e-0d6a-4f0e-9b52-7c9f6b9d2a41",
+      "displayName": "Reading log week 9",
+      "closeDateTime": null,
+      "dueDateTime": "2026-11-14T22:00:00Z",
+      "assignDateTime": null,
+      "assignedDateTime": "2026-11-03T08:00:00Z",
+      "allowLateSubmissions": true,
+      "resourcesFolderUrl": null,
+      "feedbackResourcesFolderUrl": null,
+      "createdDateTime": "2026-11-02T10:15:42.123Z",
+      "lastModifiedDateTime": "2026-11-03T08:00:00Z",
+      "allowStudentsToAddResourcesToSubmission": true,
+      "status": "assigned",
+      "notificationChannelUrl": null,
+      "webUrl": "https://teams.microsoft.com/l/entity/66aeee93-507d-479a-a3ef-8f494af43945/classroom?context=%7B%22subEntityId%22%3A%223c77de7f-539b-49e1-9c96-1274f2f0ee3b%22%7D",
+      "addToCalendarAction": "none",
+      "addedStudentAction": "none",
+      "id": "3c77de7f-539b-49e1-9c96-1274f2f0ee3b",
+      "instructions": {
+        "content": "Log 20 minutes of reading a day.",
+        "contentType": "text"
+      },
+      "grading": null,
+      "assignTo": {
+        "@odata.type": "#microsoft.graph.educationAssignmentClassRecipient"
+      },
+      "submissions@odata.context": "https://graph.microsoft.com/v1.0/$metadata#education/me/assignments('3c77de7f-539b-49e1-9c96-1274f2f0ee3b')/submissions",
+      "submissions": [
+        {
+          "status": "submitted",
+          "submittedDateTime": null,
+          "unsubmittedDateTime": null,
+          "returnedDateTime": null,
+          "reassignedDateTime": null,
+          "excusedDateTime": null,
+          "resourcesFolderUrl": null,
+          "id": "d1bee293-d8bb-48d4-af3e-c8cb0e3c7fe7",
+          "recipient": {
+            "@odata.type": "#microsoft.graph.educationSubmissionIndividualRecipient",
+            "userId": "f4a9c7d2-6a1b-4c3e-8f5d-0b9e2a7c1d34"
+          }
+        }
+      ]
+    }
+  ]
+}
