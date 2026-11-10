@@ -1,3 +1,6 @@
+import { hasSprite, spriteURL } from '../tbme/sprites.js';
+import goofy from '../tbme/fonts/TBMEGoofy-Regular.woff2?url';
+import { woodCss } from './woodkit.ts';
 // Pixel-art UI kit. Frames are painted pixel by pixel at 1x and used as nine-slice border images;
 // icons are hand-drawn 12x12 sprites. Everything shares the forest's palette.
 export const PAL: Record<string, string> = {
@@ -116,14 +119,27 @@ const ICON_ART: Record<string, string[]> = {
 };
 export type IconName = keyof typeof ICON_ART;
 const iconUrls = new Map<string, string>();
+/** Icons come from The Bear Must Eat's sprite library where it has a match; the rest are our own. */
+const TBME_ICON: Record<string, string> = {
+  tasks: 'clipboard', chat: 'speech', quests: 'map', shop: 'shop', bag: 'briefcase', shirt: 'tophat', garden: 'flower', paw: 'sticker_paw',
+  gear: 'gear', bell: 'bell', coin: 'coin', flame: 'campfire', heart: 'heart', star: 'star', clock: 'clock', check: 'check', plus: 'plus',
+  close: 'cross', lock: 'lock', board: 'grade', people: 'idbadge', calendar: 'calendar', timer: 'hourglass', spark: 'sparkle', copy: 'paperclip',
+  pin: 'pushpin', trash: 'trash', rotate: 'rotate_right', tree: 'tree', bolt: 'bolt', apple: 'berry', arrow: 'arrow_right', sun: 'sun',
+  sound: 'speaker_on', cloud: 'save', device: 'camera', gem: 'crown',
+};
 export function iconUrl(name: string): string {
   let u = iconUrls.get(name);
   if (!u) {
-    const art = ICON_ART[name] ?? ICON_ART.star;
-    u = toUrl(12, 12, (x, y) => PAL[art[y][x]] ?? null);
-    iconUrls.set(name, u);
+    const tb = TBME_ICON[name];
+    const dk = Math.max(1, Math.min(3, Math.round(window.devicePixelRatio || 1)));
+    if (tb && hasSprite(tb)) u = spriteURL(tb, 2 * dk);
+    else {
+      const art = ICON_ART[name] ?? ICON_ART.star;
+      u = toUrl(12, 12, (x, y) => PAL[art[y][x]] ?? null);
+    }
+    iconUrls.set(name, u!);
   }
-  return u;
+  return u!;
 }
 
 const btn = (hi: string, fill: string, lo: string, base: string) => ({ up: frame({ ink: PAL.K, fill, hi, lo, base, baseH: 2 }), down: frame({ ink: PAL.K, fill: lo, hi: lo, lo, base, baseH: 2, pressed: true }) });
@@ -145,7 +161,33 @@ export function installSkin() {
   const root = document.documentElement.style;
   for (const [k, v] of Object.entries(f)) root.setProperty(`--f-${k}`, `url(${v})`);
   for (const [k, v] of Object.entries(b)) { root.setProperty(`--b-${k}`, `url(${v.up})`); root.setProperty(`--b-${k}-down`, `url(${v.down})`); }
+  // the handcrafted wood kit and the game font sit on top of the base styles
+  const st = document.createElement('style');
+  st.id = 'woodkit';
+  st.textContent = `@font-face{font-family:'TBME Goofy';src:url(${goofy}) format('woff2');font-display:block}` + woodCss() + EXTRA;
+  document.head.appendChild(st);
   const fit = () => root.setProperty('--u', (innerWidth < 380 ? 2 : innerWidth >= 1700 ? 4 : 3) + 'px');
   fit();
   addEventListener('resize', fit);
 }
+
+/** Type and layout adjustments for the wood kit (loaded after the base stylesheet). */
+const EXTRA = `
+body{font-family:'TBME Goofy','Pixelify Sans',system-ui,sans-serif;font-size:18px;line-height:1.25;-webkit-font-smoothing:none}
+.num,.price,.badge,.cell .cnt{font-family:'TBME Goofy',monospace !important}
+.small{font-size:15px}.ttl{font-size:18px}.meta{font-size:15px}
+.sheet>header h2{font-size:30px;color:#ffe9b0;text-shadow:0 2px 0 #3b2212,0 4px 0 #24150d;letter-spacing:1px}
+h3{font-size:18px;color:#6e4326}
+.btn{font-size:17px;text-shadow:0 2px 0 #0006}
+img.ico{width:32px;height:32px;image-rendering:pixelated}img.ico.s{width:22px;height:22px}
+.logo{font-family:'TBME Goofy';font-size:68px;letter-spacing:2px}
+.dock{gap:6px;align-items:flex-end;padding:0 6px}
+.tok{position:relative;display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;cursor:pointer;color:#3b2212;width:78px}
+.tok .disc{width:68px;height:68px;background:var(--tok) 0 0/100% 100%;image-rendering:pixelated;display:grid;place-items:center;filter:drop-shadow(0 4px 0 #24150d88);transition:transform .12s steps(3)}
+.tok .disc img{width:44px;height:44px;image-rendering:pixelated;filter:drop-shadow(0 2px 0 #3b2212)}
+.tok:hover .disc{transform:translateY(-3px) rotate(-3deg)}
+.tok:active .disc,.tok.on .disc{transform:translateY(3px) scale(.96)}
+.tok .lab{margin-top:-8px;padding:1px 8px 2px;background:#f6e7c3;border:2px solid #24150d;box-shadow:0 2px 0 #b5935c;font-size:15px;line-height:1.1;transform:rotate(-2deg);white-space:nowrap}
+.tok:nth-child(even) .lab{transform:rotate(2deg)}
+.tok .badge{top:-4px;right:2px}
+`;

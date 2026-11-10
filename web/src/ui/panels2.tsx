@@ -322,7 +322,7 @@ export function Onboarding() {
   const info = SPECIES_INFO[sp];
   const preview = (s: SpeciesId) => {
     setSp(s); sound.play('ui_tab');
-    ctx.world?.setSidekicks(STARTERS.map((x) => ({ id: 'starter-' + x, name: SPECIES_INFO[x].defaultName, look: { species: x, ...SPECIES_INFO[x].look }, outfit: {} })), 'starter-' + s);
+    ctx.world?.setSidekicks(STARTERS.map((x) => ({ id: 'starter-' + x, name: SPECIES_INFO[x].defaultName, look: { species: x, ...SPECIES_INFO[x].look }, outfit: { ...SPECIES_INFO[x].outfit } })), 'starter-' + s);
     ctx.world?.sidekick?.emote('wave');
   };
   useEffect(() => { preview('fox'); }, []);

@@ -249,9 +249,11 @@ export function unlockSpecies(sp: SpeciesId) {
   if (st.owned || !st.can) return false;
   if (u.kind === 'coins') S.progress.coins -= u.n;
   if (u.kind === 'gems') S.progress.gems -= u.n;
-  S.sidekicks.push(newSidekick(sp));
+  const nk = newSidekick(sp);
+  S.sidekicks.push(nk);
+  for (const id of Object.values(nk.outfit)) if (id && !S.wardrobe.includes(id)) S.wardrobe.push(id);
   fire({ type: 'bought', what: SPECIES_INFO[sp].label });
-  commit('progress', 'sidekicks');
+  commit('progress', 'sidekicks', 'wardrobe');
   return true;
 }
 
@@ -339,10 +341,11 @@ export function pushChat(role: 'user' | 'sidekick', text: string) {
 export function begin(species: SpeciesId, sidekickName: string, ownerName: string, demo: boolean) {
   const sk = newSidekick(species, sidekickName);
   S.sidekicks = [sk]; S.active = sk.id;
+  for (const id of Object.values(sk.outfit)) if (id && !S.wardrobe.includes(id)) S.wardrobe.push(id);
   S.owner = { name: ownerName.trim().slice(0, 24), onboarded: true };
   if (demo && !S.tasks.length) S.tasks.push(...demoTasks());
   S.plan = null;
-  commit('owner', 'sidekicks', 'active', 'plan');
+  commit('owner', 'sidekicks', 'active', 'plan', 'wardrobe');
 }
 
 export function resetSave() {

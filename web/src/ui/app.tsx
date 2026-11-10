@@ -1,4 +1,5 @@
 // App shell: HUD, dock, speech bubble, overlays, and the wiring between forest, game rules, sound and server.
+import { signal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { fmtMinutes } from '@shared/planner.ts';
 import { FOOD } from '../assets/furniture.ts';
@@ -15,6 +16,7 @@ import { actor, away, Bar, Btn, ctx, focus, gardenMode, hush, Ico, Modal, modal,
 import { ChatPanel, QuestsPanel, TasksPanel } from './panels.tsx';
 import { BagPanel, FriendsPanel, GardenBar, Onboarding, SettingsPanel, ShopPanel, WardrobePanel } from './panels2.tsx';
 import { iconUrl } from './pix.ts';
+import { spriteUrl } from './woodkit.ts';
 
 const U = (n: number) => `calc(var(--u) * ${n})`;
 
@@ -54,6 +56,29 @@ function FxLayer() {
 }
 
 // ---------------------------------------------------------------- pieces
+
+/** Forest friends chatting among themselves: a small bubble above whoever is talking. */
+const chatter = signal<{ id: string; text: string } | null>(null);
+function Chatter() {
+  const ref = useRef<HTMLDivElement>(null), c = chatter.value;
+  useEffect(() => {
+    let raf = 0;
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      const cur = chatter.value, w = ctx.world, el = ref.current;
+      if (!cur || !w || !el) return;
+      const a = w.actors.get(cur.id);
+      if (!a || !a.visible) { el.style.visibility = 'hidden'; return; }
+      const p = w.screenOf(a.headWorld());
+      el.style.visibility = p.behind ? 'hidden' : 'visible';
+      el.style.left = `${Math.round(Math.max(90, Math.min(innerWidth - 90, p.x)))}px`; el.style.top = `${Math.round(p.y - 10)}px`;
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  if (!c || panel.value || gardenMode.value) return null;
+  return <div ref={ref} class="say fr bubblef" style={{ maxWidth: '220px', fontSize: '15px', opacity: 0.95, zIndex: 1 }}>{c.text}</div>;
+}
 
 function Bubble() {
   const ref = useRef<HTMLDivElement>(null), sp = speech.value, sk = sidekick();
@@ -100,10 +125,12 @@ function Dock() {
   rev.value; // eslint-disable-line @typescript-eslint/no-unused-expressions
   const dueSoon = openTasks().filter((t) => t.due != null && t.due < Date.now() + 86400000).length;
   const claimable = [...S.quests.daily, ...S.quests.weekly].filter((q) => !q.claimed && q.n > 0).length;
-  const item = (id: 'tasks' | 'chat' | 'quests' | 'shop' | 'bag', icon: string, label: string, kind: string, badge = 0) => (
-    <Btn key={id} k={kind} icon={icon} cls={panel.value === id ? 'down' : ''} onClick={() => open(panel.value === id ? null : id)}>{label}{badge > 0 && <i class="badge">{badge}</i>}</Btn>
+  const item = (id: 'tasks' | 'chat' | 'quests' | 'shop' | 'bag', icon: string, label: string, badge = 0) => (
+    <button key={id} class={`tok ${panel.value === id ? 'on' : ''}`} aria-label={label} onClick={() => { sound.play('ui_tap'); open(panel.value === id ? null : id); }}>
+      <span class="disc"><img src={iconUrl(icon)} alt="" /></span><span class="lab">{label}</span>{badge > 0 && <i class="badge">{badge}</i>}
+    </button>
   );
-  return <nav class="dock">{item('tasks', 'tasks', 'Tasks', '', dueSoon)}{item('chat', 'chat', 'Talk', 'leaf')}{item('quests', 'quests', 'Quests', 'berry', claimable)}{item('shop', 'shop', 'Market', 'gold')}{item('bag', 'bag', 'Bag', 'sky')}</nav>;
+  return <nav class="dock" style={{ ['--tok' as string]: `url(${spriteUrl('token')})` }}>{item('tasks', 'tasks', 'Tasks', dueSoon)}{item('chat', 'chat', 'Talk')}{item('quests', 'quests', 'Quests', claimable)}{item('shop', 'shop', 'Market')}{item('bag', 'bag', 'Bag')}</nav>;
 }
 
 function FocusChip() {
@@ -151,6 +178,7 @@ export function App() {
   return (
     <>
       {!gardenMode.value && <Hud />}
+      <Chatter />
       <Bubble />
       <FocusChip />
       <AwayBanner />
@@ -171,6 +199,9 @@ const Toasts = () => <div class="toasts">{toasts.value.map((t) => <div key={t.id
 const chipPos = () => { const r = document.getElementById('coins')?.getBoundingClientRect(); return r ? { x: r.left + r.width / 2, y: r.bottom } : { x: innerWidth - 60, y: 40 }; };
 
 /** Connect the world, the store, the server and the sound manager. Called once at start-up. */
+let pats = 0;
+const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
+
 export function wire(world: World) {
   ctx.world = world;
   const foodProps = new Map<string, ReturnType<typeof buildProp>>();
@@ -191,7 +222,8 @@ export function wire(world: World) {
       const a = world.actors.get(e.id);
       if (!a) return;
       a.pet();
-      if (e.id === S.active) { pat(); if (!speech.value && Math.random() < 0.6) say(brain.pat(), 2.5); }
+      if (e.id === S.active) { pat(); pats++; if (!speech.value) say(pats % 6 === 0 ? brain.react('pets') : Math.random() < 0.6 ? brain.pat() : '', 2.5); }
+      else { const sk2 = S.sidekicks.find((x) => x.id === e.id); if (sk2) { chatter.value = { id: e.id, text: pick(['Hi!', 'Hehe, that tickles.', `I'm ${sk2.name}!`, 'Pat accepted.', '♥']) }; setTimeout(() => { chatter.value = null; }, 2200); } }
     } else if (e.type === 'tapGround' && !gardenMode.value && !panel.value) {
       const a = actor();
       if (a && !a.busy && walkable(e.x, e.z)) { a.goTo(e.x, e.z); world.fx.burst('sparkle', e.x, 0.15, e.z, 3); }
@@ -260,7 +292,8 @@ export function wire(world: World) {
     if (S.owner.onboarded && !panel.value && !speech.value && !focus.value && !away.value && !gardenMode.value && now - lastChat > 95000 && !document.hidden) {
       lastChat = now;
       const r = Math.random();
-      say(r < 0.45 && openTasks().length ? brain.nudge() : r < 0.7 ? brain.joke() : brain.idle(), 4.5);
+      void r;
+      say(brain.ambient(), 4.5);
     }
   }, 20000);
 
@@ -275,6 +308,32 @@ export function wire(world: World) {
     }, 2500);
   }
   if (q.get('plus')) { history.replaceState(null, '', location.pathname); setTimeout(() => toast(q.get('plus') === 'success' ? 'Welcome to Sidekick Plus' : 'Checkout cancelled', 'star'), 1500); }
+
+  // companions chat among themselves now and then
+  setInterval(() => {
+    if (document.hidden || panel.value || gardenMode.value || chatter.value || S.sidekicks.length < 2) return;
+    const others = S.sidekicks.filter((x) => x.id !== S.active);
+    if (Math.random() < 0.55) return;
+    const a = pick(others), b = pick(S.sidekicks.filter((x) => x.id !== a.id));
+    const [l1, l2] = brain.banter(a.name, b.name, sidekick()?.name ?? '');
+    chatter.value = { id: a.id, text: l1 };
+    world.actors.get(a.id)?.emote('wave');
+    setTimeout(() => { chatter.value = { id: b.id, text: l2 }; world.actors.get(b.id)?.emote('laugh'); }, 2600);
+    setTimeout(() => { chatter.value = null; }, 5400);
+  }, 26000);
+  // the sidekick comments on what you open, sometimes
+  panel.subscribe((p) => {
+    if (!p || away.value || Math.random() > 0.4) return;
+    const kind = ({ shop: 'shop', tasks: 'tasks', quests: 'quests', bag: 'bag', wardrobe: 'wardrobe' } as Record<string, 'shop' | 'tasks' | 'quests' | 'bag' | 'wardrobe'>)[p];
+    if (kind) setTimeout(() => { if (!speech.value) say(brain.react(kind), 2.2); }, 300);
+  });
+  // a warm welcome after a long time away
+  try {
+    const last = Number(localStorage.getItem('sidekick.lastSeen') || 0);
+    if (last && Date.now() - last > 8 * 3600000) setTimeout(() => say(brain.react('lonely'), 5), 9000);
+    setInterval(() => localStorage.setItem('sidekick.lastSeen', String(Date.now())), 30000);
+    localStorage.setItem('sidekick.lastSeen', String(Date.now()));
+  } catch { /* storage blocked */ }
 
   syncWorld();
   upkeep();

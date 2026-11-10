@@ -185,3 +185,60 @@ export function localReply(text: string): Line {
   }
   return { text: `I'm in offline mode, so I can plan, add tasks, set a focus timer and tell bad jokes. For real back-and-forth I need the server's AI switched on. Meanwhile: ${nudge().text}`, emote: 'think' };
 }
+
+// ---------------------------------------------------------------- personality: reactions, moods, banter
+
+/** Each species' little verbal tic, sprinkled into reactions. */
+const TIC: Record<SpeciesId, string> = {
+  cat: 'Mrrp.', dog: 'Woof!', axolotl: 'Ooh!', fox: 'Heh.', bunny: 'Eee!', raccoon: 'Ayy.', frog: 'Ribbit.', owl: 'Indeed.',
+  bear: 'Mm.', redpanda: '*gasp*', parrot: 'SQUAWK!', shark: 'Dude.', goldfish: 'Blub!',
+};
+const sp = () => sidekick()?.look.species ?? 'cat';
+const tic = () => TIC[sp()];
+
+const REACT: Record<string, string[]> = {
+  shop: ['Shopping? Get me a snack. A big one.', "Ooh, the market. Don't spend it all on hats. Or do.", 'I have been eyeing that bench, just saying.'],
+  tasks: ["Let's see the damage.", 'The list! My favourite scary thing.', 'Okay, show me what we are up against.'],
+  quests: ['Quests are just chores wearing capes.', 'We are SO close on one of those.', 'Shiny rewards ahead.'],
+  bag: ['What have we got in there?', 'Is there food in there? Asking for me.', 'Ooh, pockets.'],
+  wardrobe: ['Make me look legendary.', 'Fashion time. I was born for this.', 'Nothing too itchy, please.'],
+  night: ["It's late. One small thing, then sleep. Brains need it.", 'The fireflies are out. So should you be, soon. Bed.', 'Late-night studying? I will keep watch.'],
+  morning: ['Morning! The dew is out and so is the plan.', 'Fresh day. Nothing has gone wrong yet!', 'Rise and grind. Gently.'],
+  hungry: ['My tummy is making noises. Just letting you know.', 'Is that... a snack in your bag? No? Sad.', 'I could eat a whole pond. Metaphorically.'],
+  tired: ['Yaaawn. Is it nap o\'clock?', 'My eyelids weigh a tonne.', 'Five more minutes...'],
+  lonely: ['I missed you! The butterflies are terrible listeners.', "You're back! I kept your spot warm.", 'It got quiet without you.'],
+  pets: ['Okay, now I am never leaving.', 'Ten out of ten head pats.', 'You are getting very good at that.'],
+};
+/** A short in-character reaction to something the player just did. */
+export function react(kind: keyof typeof REACT): Line {
+  const base = pick(REACT[kind]);
+  return { text: Math.random() < 0.5 ? `${tic()} ${base}` : base, emote: kind === 'tired' || kind === 'night' ? 'sleepy' : kind === 'hungry' ? 'sad' : kind === 'pets' ? 'love' : 'happy' };
+}
+
+/** What the sidekick says on its own when nothing urgent is going on: mood first, then the time of day, then chatter. */
+export function ambient(): Line {
+  const h = new Date().getHours();
+  if (S.pet.hunger > 70) return react('hungry');
+  if (S.pet.energy < 25) return react('tired');
+  if ((h >= 22 || h < 5) && Math.random() < 0.5) return react('night');
+  if (h >= 6 && h < 10 && Math.random() < 0.3) return react('morning');
+  const r = Math.random();
+  return r < 0.4 ? nudge() : r < 0.65 ? joke() : idle();
+}
+
+const BANTER: string[][] = [
+  ['Hey {b}, did you finish yours?', 'Almost! Okay, no. But almost.'],
+  ['{b}, stop eating the flowers.', 'I am TASTING them. For science.'],
+  ['Race you to the pond, {b}!', 'You always cheat. ...Go!'],
+  ['Do you think {a2} will finish early today?', 'Definitely. Probably. Maybe.'],
+  ['{b}, nice outfit.', 'I know. Thank you.'],
+  ['I found a mushroom shaped like a heart.', 'Do not eat it, {a}.'],
+  ['What is homework anyway, {b}?', 'Home. Work. It is in the name. Very sad.'],
+  ['Shh, {b}. Our human is focusing.', '...I was being quiet!'],
+];
+/** Two forest friends chatting: returns the lines in order. */
+export function banter(a: string, b: string, active: string): [string, string] {
+  const pair = pick(BANTER);
+  const f = (s: string) => s.replace('{a}', a).replace('{b}', b).replace('{a2}', S.owner.name || active);
+  return [f(pair[0]), f(pair[1])];
+}

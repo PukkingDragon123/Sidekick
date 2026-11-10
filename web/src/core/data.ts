@@ -66,7 +66,7 @@ export const EYE_COLORS = ['#f2a81d', '#7bd88f', '#59c2e8', '#e0567c', '#9a5a2e'
 
 export function newSidekick(species: SpeciesId, name?: string): Sidekick {
   const info = SPECIES_INFO[species];
-  return { id: uid(), name: name || info.defaultName, look: { species, ...info.look } as Look, outfit: {} };
+  return { id: uid(), name: name || info.defaultName, look: { species, ...info.look } as Look, outfit: { ...info.outfit } };
 }
 
 export function newSave(now = Date.now(), tz = Intl.DateTimeFormat().resolvedOptions().timeZone): SaveState {
