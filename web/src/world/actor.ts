@@ -6,7 +6,7 @@ import type { Sidekick } from '@shared/types.ts';
 import { buildAnimal, type Animal, type EyeFrame, type MouthFrame } from '../assets/animals.ts';
 import { PX, type Prop, propMesh } from '../gfx/box.ts';
 import type { Fx } from './fx.ts';
-import { groundY, pondD, walkable, type Collider } from './layout.ts';
+import { groundY as forestGround, pondD, walkable as forestWalkable, type Collider } from './layout.ts';
 
 export type Action = 'idle' | 'walk' | 'sit' | 'sleep' | 'eat' | 'wave' | 'cheer' | 'dance' | 'think' | 'pose' | 'sniff' | 'laugh' | 'sad' | 'surprised' | 'nod' | 'love' | 'study' | 'gone';
 
@@ -23,6 +23,9 @@ export interface ActorEnv {
   /** audio hooks */
   sound(id: string, at?: THREE.Vector3): void;
   camera: THREE.Camera;
+  /** overrides for places that are not the forest (the desktop overlay) */
+  ground?(x: number, z: number): number;
+  canWalk?(x: number, z: number): boolean;
 }
 
 const D = Math.PI / 180;
@@ -34,6 +37,8 @@ const TALK: MouthFrame[] = ['open1', 'open2', 'neutral', 'open1', 'smile'];
 
 export class Actor {
   animal!: Animal;
+  private groundY = (x: number, z: number) => (this.env.ground ? this.env.ground(x, z) : forestGround(x, z));
+  private walkable = (x: number, z: number) => (this.env.canWalk ? this.env.canWalk(x, z) : forestWalkable(x, z));
   readonly node = new THREE.Group();
   readonly pos = new THREE.Vector3();
   yaw = 0;
@@ -85,7 +90,7 @@ export class Actor {
   get height() { return this.animal.rig.height; }
   headWorld(out = new THREE.Vector3()) { return out.set(this.pos.x, this.node.position.y + this.height + 0.25, this.pos.z); }
 
-  place(x: number, z: number, yaw = 0) { this.pos.set(x, groundY(x, z), z); this.yaw = yaw; this.node.position.copy(this.pos); this.node.rotation.y = yaw; }
+  place(x: number, z: number, yaw = 0) { this.pos.set(x, this.groundY(x, z), z); this.yaw = yaw; this.node.position.copy(this.pos); this.node.rotation.y = yaw; }
 
   // ---------------------------------------------------------------- commands
 
@@ -206,7 +211,7 @@ export class Actor {
     const free = (k: Seat['kind']) => env.seats().filter((s) => !s.taken && (s.kind ?? 'sit') === k);
     const walkTo = (s: Seat, a: Action, len: number) => {
       const fx = s.x + Math.sin(s.rot) * 0.9, fz = s.z + Math.cos(s.rot) * 0.9;
-      const [ax, az] = walkable(fx, fz) ? [fx, fz] : [s.x, s.z];
+      const [ax, az] = this.walkable(fx, fz) ? [fx, fz] : [s.x, s.z];
       this.goTo(ax, az, () => { if (!s.taken) this.takeSeat(s, a, len); });
     };
     const r = Math.random();
@@ -222,19 +227,19 @@ export class Actor {
       return this.set('sit', rand(5, 10));
     }
     if (r < 0.62) {
-      const f = env.flowers().filter((p) => walkable(p.x, p.z));
+      const f = env.flowers().filter((p) => this.walkable(p.x, p.z));
       if (f.length) { const p = f[Math.floor(Math.random() * f.length)]; return this.goTo(p.x + rand(-0.6, 0.6), p.z + rand(0.3, 0.8), () => this.set('sniff', 3)); }
     }
     if (r < 0.7) {
       const c = env.chaseTarget();
-      if (c && walkable(c.x, c.z)) return this.goTo(c.x, c.z, () => this.emote('surprised'), true);
+      if (c && this.walkable(c.x, c.z)) return this.goTo(c.x, c.z, () => this.emote('surprised'), true);
     }
     if (r < 0.78) {
       const toys = free('play');
       if (toys.length) { const s = toys[Math.floor(Math.random() * toys.length)]; return this.goTo(s.x + rand(-0.8, 0.8), s.z + 0.9, () => this.set('cheer', 2.4)); }
     }
-    if (r < 0.86) { // sit by the water
-      for (let i = 0; i < 12; i++) { const a = rand(0, 6.28), x = 7.2 + Math.cos(a) * 5.2, z = 3.4 + Math.sin(a) * 4.0; if (walkable(x, z) && pondD(x, z) < 1.45) return this.goTo(x, z, () => { this.yaw = Math.atan2(7.2 - x, 3.4 - z); this.set('sit', rand(6, 12)); }); }
+    if (r < 0.86 && !this.env.canWalk) { // sit by the water
+      for (let i = 0; i < 12; i++) { const a = rand(0, 6.28), x = 7.2 + Math.cos(a) * 5.2, z = 3.4 + Math.sin(a) * 4.0; if (this.walkable(x, z) && pondD(x, z) < 1.45) return this.goTo(x, z, () => { this.yaw = Math.atan2(7.2 - x, 3.4 - z); this.set('sit', rand(6, 12)); }); }
     }
     if (r < 0.92) return this.set('dance', 3.5);
     if (r < 0.96) return this.set('wave', 2);
@@ -244,7 +249,7 @@ export class Actor {
   private wander() {
     for (let i = 0; i < 14; i++) {
       const a = rand(0, 6.28), d = rand(1.5, 6.5), x = this.pos.x * 0.4 + Math.cos(a) * d, z = this.pos.z * 0.4 + Math.sin(a) * d;
-      if (walkable(x, z) && !this.env.colliders().some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 0.5)) return this.goTo(x, z);
+      if (this.walkable(x, z) && !this.env.colliders().some((c) => Math.hypot(c.x - x, c.z - z) < c.r + 0.5)) return this.goTo(x, z);
     }
   }
 
@@ -274,9 +279,9 @@ export class Actor {
           }
         }
         const nx = this.pos.x + vx * dt, nz = this.pos.z + vz * dt;
-        if (walkable(nx, nz)) { this.pos.x = nx; this.pos.z = nz; }
-        else if (walkable(nx, this.pos.z)) this.pos.x = nx;
-        else if (walkable(this.pos.x, nz)) this.pos.z = nz;
+        if (this.walkable(nx, nz)) { this.pos.x = nx; this.pos.z = nz; }
+        else if (this.walkable(nx, this.pos.z)) this.pos.x = nx;
+        else if (this.walkable(this.pos.x, nz)) this.pos.z = nz;
         else this.stuck += dt * 3;
         this.stuck += dt * 0.12;
         if (this.stuck > 1.6) { this.target = null; this.onArrive = null; this.set('idle', 0); }
@@ -427,7 +432,7 @@ export class Actor {
     const root = A.rig.root, sq = this.squash + breathe;
     root.scale.set(1 + (1 - sq) * 0.6, sq, 1 + (1 - sq) * 0.6);
     root.rotation.x = this.sink * D;
-    const seatY = this.seat ? this.seat.y - g.legH * PX + 0.02 : groundY(this.pos.x, this.pos.z);
+    const seatY = this.seat ? this.seat.y - g.legH * PX + 0.02 : this.groundY(this.pos.x, this.pos.z);
     this.pos.y = seatY;
     this.node.position.set(this.pos.x, seatY + this.lift + this.sinkT, this.pos.z);
     this.node.rotation.y = this.yaw;

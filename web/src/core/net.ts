@@ -63,6 +63,7 @@ function socket() {
   u.protocol = u.protocol.replace('http', 'ws');
   u.searchParams.set('token', auth.token);
   ws = new WebSocket(u);
+  ws.onopen = () => { for (const m of queue.splice(0)) ws?.send(JSON.stringify(m)); };
   ws.onmessage = (e) => {
     let m: WsServerMsg;
     try { m = JSON.parse(String(e.data)) as WsServerMsg; } catch { return; }
@@ -73,7 +74,12 @@ function socket() {
   ws.onclose = () => { ws = null; if (link.value === 'online') { link.value = 'connecting'; setTimeout(connect, 2500); } };
 }
 
-export function send(m: WsClientMsg) { if (ws?.readyState === 1) ws.send(JSON.stringify(m)); }
+const queue: WsClientMsg[] = [];
+/** Send over the live channel; anything sent while it is still opening goes out as soon as it is up. */
+export function send(m: WsClientMsg) {
+  if (ws?.readyState === 1) ws.send(JSON.stringify(m));
+  else if (m.t !== 'ping' && queue.length < 8) queue.push(m);
+}
 /** Ask the server to bring the sidekick to this device. */
 export const summon = () => send({ t: 'summon' });
 
