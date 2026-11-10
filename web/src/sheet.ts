@@ -39,7 +39,7 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(BG[setName] ?? BG.default);
+scene.background = new THREE.Color(q.get('bg') ? parseInt(q.get('bg')!, 16) : (BG[setName] ?? BG.default));
 scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa0c8, 1.25));
 const sun = new THREE.DirectionalLight(0xfff4e0, 1.9);
 scene.add(sun, sun.target);
