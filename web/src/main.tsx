@@ -27,7 +27,7 @@ const canvas = document.getElementById('world') as HTMLCanvasElement;
 const world = new World({ canvas, quality: pickQuality() });
 world.skyMode = (q.get('sky') as typeof world.skyMode) ?? savedSky();
 world.applySky();
-if (innerWidth < innerHeight) world.snapCamera({ dist: 24, pitch: 0.56 }); else world.snapCamera();
+if (innerWidth < innerHeight) world.snapCamera({ dist: 17, pitch: 0.5 }); else world.snapCamera();
 addEventListener('resize', () => world.resize());
 
 // developer conveniences used by the screenshot harness

@@ -21,8 +21,9 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .fr { border-style: solid; border-width: calc(var(--u) * 6); border-image-slice: 6 fill; border-image-repeat: stretch; image-rendering: pixelated; }
 .fr.sm { border-width: calc(var(--u) * 4); border-image-slice: 4 fill; }
 .wood { border-image-source: var(--f-wood); color: var(--cream); }
-.paper { border-image-source: var(--f-paper); }
-.slot { border-image-source: var(--f-slot); }
+.paper { border-image-source: var(--f-paper); color: var(--ink); }
+.slot { border-image-source: var(--f-slot); color: var(--ink); }
+.field { color: var(--ink); }
 .slot.on { border-image-source: var(--f-slotOn); }
 .dark { border-image-source: var(--f-dark); color: #fffdf5; }
 .bubblef { border-image-source: var(--f-bubble); }

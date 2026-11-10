@@ -145,7 +145,8 @@ describe('a plain reply', () => {
     expect(notes).toContain('Local time: Tue 10 Nov 2026, 16:00 (Asia/Bangkok)');
     expect(notes).toContain('Streak: 4 days. Tasks finished so far: 12. Level 2.');
     expect(notes).toContain('Finished today: "Vocabulary list 5"');
-    expect(notes).toContain('fullness 70, joy 80, energy 60');
+    // hunger is stored as 0 (just fed) to 100 (starving), so a hunger of 70 reads as fullness 30
+    expect(notes).toContain('fullness 30, joy 80, energy 60');
     expect(notes).toContain('Open tasks: 5, 1 overdue');
 
     const lines = notes.split('\n').filter((l) => l.startsWith('  ['));

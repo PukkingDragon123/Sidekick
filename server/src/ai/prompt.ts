@@ -99,11 +99,10 @@ function taskLine(t: Task, now: number, tz: string): string {
 }
 
 function needs(state: SaveState): string {
-  const raw = [state.pet.hunger, state.pet.joy, state.pet.energy];
-  // the game may store need bars as 0..1 or 0..100
-  const scale = raw.every((n) => n >= 0 && n <= 1) ? 100 : 1;
-  const [hunger, joy, energy] = raw.map((n) => Math.round(Math.min(100, Math.max(0, n * scale))));
-  return `fullness ${hunger}, joy ${joy}, energy ${energy} (bars from 0 to 100 that run down over time; low means you want food, play or rest)`;
+  // the game stores hunger as 0 (just fed) to 100 (starving); joy and energy run 0..100 with higher being better
+  const clamp = (n: number) => Math.round(Math.min(100, Math.max(0, n)));
+  const fullness = clamp(100 - state.pet.hunger), joy = clamp(state.pet.joy), energy = clamp(state.pet.energy);
+  return `fullness ${fullness}, joy ${joy}, energy ${energy} (bars from 0 to 100 that run down over time; low means you want food, play or rest)`;
 }
 
 const MAX_TASKS_IN_CONTEXT = 30;

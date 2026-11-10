@@ -146,7 +146,7 @@ export class World {
     this.camera.aspect = w / h;
     // keep a comfortable horizontal view in portrait by opening up the vertical FOV
     const hf = (30 * Math.PI) / 180;
-    this.camera.fov = Math.min(58, Math.max(30, (2 * Math.atan(Math.tan(hf / 2) / Math.min(1, this.camera.aspect)) * 180) / Math.PI));
+    this.camera.fov = Math.min(48, Math.max(30, (2 * Math.atan(Math.tan(hf / 2) / Math.min(1, this.camera.aspect)) * 180) / Math.PI));
     this.camera.updateProjectionMatrix();
   }
 
@@ -191,7 +191,11 @@ export class World {
 
     // camera goal for the current focus
     const g = this.cam, s = this.sidekick;
-    if (this.focus === 'home') g.target.set(s && s.visible ? s.pos.x * 0.45 : 0, 1.2, s && s.visible ? s.pos.z * 0.45 : 0);
+    if (this.focus === 'home') {
+      // follow the sidekick more closely on narrow screens, where the view is tighter
+      const f = this.camera.aspect < 1 ? 0.8 : 0.45;
+      g.target.set(s && s.visible ? s.pos.x * f : 0, 1.2, s && s.visible ? s.pos.z * f : 0);
+    }
     else if (this.focus === 'garden') { g.target.set(GARDEN.x, 0.4, GARDEN.z); g.pitch = 0.92; g.dist = 21; g.yaw = 0; }
     else if (s) {
       const close = this.focus === 'wardrobe';

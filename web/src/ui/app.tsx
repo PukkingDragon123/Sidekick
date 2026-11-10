@@ -72,7 +72,7 @@ function Bubble() {
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, []);
-  if (!sp || !sk || panel.value === 'chat') return null;
+  if (!sp || !sk || panel.value || gardenMode.value) return null;
   return <div ref={ref} class="say fr bubblef" onClick={() => { hush(); open('chat'); }}><span class="name">{sk.name}</span>{sp.shown}</div>;
 }
 
