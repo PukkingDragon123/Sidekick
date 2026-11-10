@@ -4,7 +4,10 @@ import { resolve } from 'node:path';
 
 const server = process.env.SIDEKICK_SERVER ?? 'http://localhost:8787';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // `--mode artifact`: a standalone offline build with relative paths, for publishing as a static page
+  base: mode === 'artifact' ? './' : '/',
+  define: mode === 'artifact' ? { 'import.meta.env.VITE_OFFLINE': JSON.stringify('1') } : {},
   plugins: [preact()],
   resolve: { alias: { '@shared': resolve(__dirname, '../shared/src') } },
   server: {
@@ -17,12 +20,13 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    outDir: mode === 'artifact' ? 'dist-artifact' : 'dist',
     rollupOptions: {
-      input: {
+      input: mode === 'artifact' ? { main: resolve(__dirname, 'index.html') } : {
         main: resolve(__dirname, 'index.html'),
         pet: resolve(__dirname, 'pet.html'),
         sheet: resolve(__dirname, 'sheet.html'),
       },
     },
   },
-});
+}));

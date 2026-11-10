@@ -43,7 +43,7 @@ const pre = Number(q.get('pre') ?? 0);
 for (let i = 0; i < pre * 30; i++) world.step(1 / 30, false);
 world.start();
 void net.connect();
-if ('serviceWorker' in navigator && import.meta.env.PROD) void navigator.serviceWorker.register('/sw.js');
+if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.VITE_OFFLINE !== '1') void navigator.serviceWorker.register('/sw.js');
 
 document.getElementById('splash')?.remove();
 const w = window as unknown as { __ready: boolean; world: World };

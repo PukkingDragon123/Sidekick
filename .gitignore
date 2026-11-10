@@ -8,3 +8,4 @@ server/data/
 shots/
 .DS_Store
 desktop/out/
+dist-artifact/

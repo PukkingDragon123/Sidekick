@@ -51,7 +51,7 @@ export class Sound {
 
   async init() {
     try {
-      const r = await fetch('/sfx/manifest.json');
+      const r = await fetch(`${import.meta.env.BASE_URL}sfx/manifest.json`);
       if (r.ok) this.man = (await r.json()) as Manifest;
     } catch { /* no sounds bundled */ }
     // browsers only allow audio after a gesture
@@ -82,7 +82,7 @@ export class Sound {
   private buffer(file: string): Promise<AudioBuffer | null> {
     let p = this.bufs.get(file);
     if (!p) {
-      p = fetch('/sfx/' + file).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject())).then((a) => this.ctx!.decodeAudioData(a)).catch(() => null);
+      p = fetch(`${import.meta.env.BASE_URL}sfx/${file}`).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject())).then((a) => this.ctx!.decodeAudioData(a)).catch(() => null);
       this.bufs.set(file, p);
     }
     return p;

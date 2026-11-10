@@ -85,6 +85,8 @@ export const summon = () => send({ t: 'summon' });
 
 /** Find the server, register this device if needed, merge saves and open the live channel. */
 export async function connect(): Promise<void> {
+  // the standalone build has no server: everything runs from the local save
+  if (import.meta.env.VITE_OFFLINE === '1') return;
   if (link.value === 'online' && ws) return;
   link.value = 'connecting';
   try {

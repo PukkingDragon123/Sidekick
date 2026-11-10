@@ -318,14 +318,14 @@ export function SettingsPanel() {
 // ---------------------------------------------------------------- onboarding
 
 export function Onboarding() {
-  const [step, setStep] = useState(0), [sp, setSp] = useState<SpeciesId>('fox'), [name, setName] = useState(''), [owner, setOwnerName] = useState(''), [demo, setDemo] = useState(true);
+  const [step, setStep] = useState(0), [sp, setSp] = useState<SpeciesId>(STARTERS[0]), [name, setName] = useState(''), [owner, setOwnerName] = useState(''), [demo, setDemo] = useState(true);
   const info = SPECIES_INFO[sp];
   const preview = (s: SpeciesId) => {
     setSp(s); sound.play('ui_tab');
     ctx.world?.setSidekicks(STARTERS.map((x) => ({ id: 'starter-' + x, name: SPECIES_INFO[x].defaultName, look: { species: x, ...SPECIES_INFO[x].look }, outfit: { ...SPECIES_INFO[x].outfit } })), 'starter-' + s);
     ctx.world?.sidekick?.emote('wave');
   };
-  useEffect(() => { preview('fox'); }, []);
+  useEffect(() => { preview(STARTERS[0]); }, []);
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: U(4), pointerEvents: 'none' }}>
       <h1 class="logo" style={{ marginTop: U(6) }}>SIDEKICK</h1>
