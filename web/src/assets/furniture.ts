@@ -630,12 +630,12 @@ const FOODS_BUILD = foodBuilders();
 
 const food = (id: keyof typeof FOODS_BUILD, name: string, price: number, fill: number, joy: number, loved: string[]): FoodDef => ({ id, name, price, fill, joy, loved, build: FOODS_BUILD[id] });
 export const FOODS: FoodDef[] = [
-  food('apple', 'Crisp Apple', 8, 18, 6, ['bear', 'capybara']), food('berries', 'Berry Bowl', 12, 20, 10, ['bear', 'redpanda', 'owl']),
-  food('carrot', 'Crunchy Carrot', 8, 18, 8, ['bunny', 'capybara']), food('acorn', 'Roasted Acorn', 6, 12, 6, ['owl', 'raccoon']),
+  food('apple', 'Crisp Apple', 8, 18, 6, ['bear', 'dog']), food('berries', 'Berry Bowl', 12, 20, 10, ['bear', 'redpanda', 'owl']),
+  food('carrot', 'Crunchy Carrot', 8, 18, 8, ['bunny', 'parrot']), food('acorn', 'Roasted Acorn', 6, 12, 6, ['owl', 'raccoon', 'parrot']),
   food('cookie', 'Choc-chip Cookie', 14, 14, 16, ['raccoon', 'fox']), food('donut', 'Sprinkle Donut', 20, 20, 22, ['raccoon', 'axolotl']),
-  food('sandwich', 'Stacked Sandwich', 24, 38, 12, ['fox', 'bear']), food('onigiri', 'Onigiri', 18, 30, 12, ['cat', 'frog']),
+  food('sandwich', 'Stacked Sandwich', 24, 38, 12, ['fox', 'bear', 'dog', 'shark']), food('onigiri', 'Onigiri', 18, 30, 12, ['cat', 'frog', 'shark', 'goldfish']),
   food('dango', 'Three-colour Dango', 22, 22, 22, ['redpanda', 'frog']), food('cake', 'Strawberry Cake', 40, 34, 34, ['bunny', 'axolotl']),
   food('pancakes', 'Maple Pancakes', 36, 44, 24, ['bear', 'fox']), food('ramen', 'Cosy Ramen', 48, 60, 26, ['cat', 'raccoon']),
-  food('boba', 'Bubble Tea', 30, 16, 36, ['axolotl', 'bunny', 'cat']), food('honey', 'Honey Pot', 26, 26, 24, ['bear', 'capybara']),
+  food('boba', 'Bubble Tea', 30, 16, 36, ['axolotl', 'bunny', 'cat']), food('honey', 'Honey Pot', 26, 26, 24, ['bear', 'dog']),
 ];
 export const FOOD: Record<string, FoodDef> = Object.fromEntries(FOODS.map((f) => [f.id, f]));

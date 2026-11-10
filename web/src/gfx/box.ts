@@ -36,6 +36,8 @@ export interface BoxSpec {
   glow?: boolean;
   /** alpha-tested and double sided */
   cut?: boolean;
+  /** see-through (fish-tank glass, water) */
+  glass?: boolean;
   /** wind weight at the top of the model (0 = rigid) */
   sway?: number;
   tag?: string;
@@ -138,7 +140,7 @@ export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: numbe
   const H = Math.max(1, cy + rowH);
   const data = new Uint8Array(W * H * 4);
 
-  const acc = parts.map(() => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], sw: [] as number[], idx: [[], [], []] as number[][] }));
+  const acc = parts.map(() => ({ pos: [] as number[], nor: [] as number[], uv: [] as number[], sw: [] as number[], idx: [[], [], [], []] as number[][] }));
   const samples: number[] = [];
   const every = o.sampleEvery ?? Math.round(3 * dn * dn);
   const min = new THREE.Vector3(Infinity, Infinity, Infinity), max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
@@ -177,7 +179,7 @@ export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: numbe
         const k = ((j.y + 1 + jj) * W + j.x + 1 + ii) * 4;
         if (c < 0) { data[k + 3] = 0; continue; }
         data[k] = (c >> 16) & 255; data[k + 1] = (c >> 8) & 255; data[k + 2] = c & 255; data[k + 3] = 255;
-        if (texelCount++ % every === 0 && !b.cut) samples.push(t.x, t.y, t.z, c);
+        if (texelCount++ % every === 0 && !b.cut && !b.glass) samples.push(t.x, t.y, t.z, c);
       }
     }
     // gutter
@@ -210,7 +212,7 @@ export function assemble(parts: Part[], o: { swayH?: number; sampleEvery?: numbe
       a.pos.push(wx, wy, wz); a.nor.push(n.x, n.y, n.z); a.uv.push(cu, cv); a.sw.push(sway);
       min.min(v.clone().multiplyScalar(PX)); max.max(v.clone().multiplyScalar(PX));
     }
-    a.idx[b.cut ? 2 : b.glow ? 1 : 0].push(base, base + 1, base + 2, base, base + 2, base + 3);
+    a.idx[b.glass ? 3 : b.cut ? 2 : b.glow ? 1 : 0].push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
 
   const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
@@ -288,7 +290,8 @@ export function makeMaterials(tex: THREE.Texture, o: { wind?: boolean } = {}): M
     depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5 });
     patchWind(depth);
   }
-  return { mats: [lit, glow, cut], depth };
+  const glass = new THREE.MeshLambertMaterial({ map: tex, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide });
+  return { mats: [lit, glow, cut, glass], depth };
 }
 
 // ---------------------------------------------------------------- rigs and props

@@ -1,0 +1,38 @@
+Bundled pixel fonts
+===================
+
+TBMEGoofy-Regular.woff2   (THE game font: every CSS family 'TBME Title', 'TBME Body',
+                           'TBME Logo'; src/ui/fonts.css)
+src/ui/goofyFont.js       (the same glyphs as bitmap tables for canvas pixel text:
+                           chalkboard, comic words, classroom signs)
+
+  "TBME Goofy" is a pixel font made for The Bear Must Eat from Chewy:
+    Chewy, Copyright (c) 2010 by Font Diner, Inc DBA Sideshow. All rights reserved.
+    Licensed under the Apache License, Version 2.0 - full text in
+    Chewy-LICENSE-Apache-2.0.txt next to this file
+    (http://www.apache.org/licenses/LICENSE-2.0).
+    Taken from the npm package @fontsource/chewy@5.3.0 (latin subset).
+
+  Changes (Apache 2.0, section 4b - this file is the notice of modification):
+  the outlines were rasterized onto a 20 px em pixel grid (caps 14 px) and
+  rebuilt as square-pixel outlines; every letter was given a fixed small vertical
+  hop and tilt; B, 1, I, +, x (times), minus and the middle dot were redrawn; the
+  symbols the game uses (male/female signs, stars, hearts, triangles, arrows,
+  ticks and crosses, block, pencil, bullet) were drawn new; the 7 px and 5 px
+  bitmap caps in goofyFont.js were hand-drawn for the game. The scripts that do
+  all this are in tbme-goofy/ (see tbme-goofy/README.txt).
+
+  Credit (title screen): "Font: TBME Goofy, made from Chewy by Font Diner / Sideshow (Apache 2.0)"
+
+Legacy files (no longer referenced by any CSS or JS; kept for old branches):
+
+Galmuri11.subset.woff2 / Galmuri11-Bold.subset.woff2 (v17 font)
+  Galmuri by Lee Minseo (quiple), https://github.com/quiple/galmuri, npm galmuri@2.40.3.
+  SIL Open Font License 1.1, full text in Galmuri-OFL.txt. Modified (subset, redrawn
+  male/female signs); build-galmuri-subset.py rebuilds them.
+
+m6x11plus.woff2 / m5x7.woff2 by Daniel Linssen (managore)
+  https://managore.itch.io/m6x11   https://managore.itch.io/m5x7
+  m6x11 / m6x11plus: "free to use with attribution"
+  m5x7:              "free to use but attribution appreciated"
+  If they are used again, credit: "m6x11plus and m5x7 fonts by Daniel Linssen (managore.itch.io)"

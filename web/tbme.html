@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><title>TBME art</title>
+<style>body{margin:0;background:#2e3a4b;font:12px sans-serif;color:#fff}.g{display:flex;flex-wrap:wrap;gap:10px;padding:10px;align-items:flex-start}.c{text-align:center}.c img{display:block;image-rendering:pixelated}</style></head>
+<body><div class="g" id="f"></div><div class="g" id="s"></div>
+<script type="module">
+import { FRAMES, frameStyle } from '/src/tbme/frames.js';
+import { SPRITES, spriteURL, hasSprite } from '/src/tbme/sprites.js';
+const f = document.getElementById('f'), s = document.getElementById('s');
+for (const n of Object.keys(FRAMES)) { const d = document.createElement('div'); d.className = 'c'; const b = document.createElement('div'); b.style.cssText = frameStyle(n, 3) + ';width:170px;height:90px;box-sizing:border-box'; d.appendChild(b); d.append(n); f.appendChild(d); }
+const only = new URLSearchParams(location.search).get('only');
+const names = Object.keys(SPRITES).length ? Object.keys(SPRITES) : [];
+console.log('sprites', names.length);
+for (const n of names.filter((n) => !only || n.startsWith(only)).slice(0, 400)) { try { const d = document.createElement('div'); d.className = 'c'; d.innerHTML = `<img src="${spriteURL(n, 3)}">${n}`; s.appendChild(d); } catch (e) {} }
+window.__ready = true;
+</script></body></html>

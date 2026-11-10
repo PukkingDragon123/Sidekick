@@ -86,6 +86,8 @@ interface Geo {
   eyeDx: number; eyeY: number;
   /** mouth plane: y above the head bottom, z offset from the head front, extra width in px */
   mouthY: number; mouthZ: number; mouthWide: number; mouth: MouthFrame | null;
+  /** face plane depth from the head centre (default: the front of the head), eye and mouth size factors */
+  faceZ?: number; eyeS?: number; mouthS?: number;
   nose: string;
   inner: string;
 }
@@ -99,7 +101,10 @@ const GEO: Record<SpeciesId, Partial<Geo>> = {
   owl: { hd: 11, bw: 10, bd: 7, legH: 3, mouth: null, eyeY: 5 },
   bear: { bw: 11, bh: 9, bd: 8, limb: 4, mouthZ: 2 },
   redpanda: { hw: 15, hd: 11, mouthZ: 2, mouth: 'cat' },
-  capybara: { hw: 12, hh: 10, hd: 14, hz: 2, bw: 12, bh: 9, bd: 9, legH: 3, limb: 4, eyeDx: 4, eyeY: 4, mouth: 'neutral', nose: '#4a342a' },
+  dog: { hd: 11, mouthZ: 3, nose: '#2b2026' },
+  parrot: { hw: 13, hd: 11, bw: 9, bd: 7, legH: 3, mouth: null, eyeY: 5 },
+  shark: { hw: 15, hh: 11, hd: 13, bw: 10, bd: 8, eyeDx: 4.5, eyeY: 4.5, mouthWide: 4, mouth: 'grin', inner: '#f2f6fa' },
+  goldfish: { hw: 14, hh: 12, hd: 12, bw: 10, bh: 8, bd: 7, limb: 3, eyeDx: 1.5, eyeY: 3.6, mouth: 'o', mouthY: 2, faceZ: 5.1, eyeS: 0.5, mouthS: 0.5 },
   axolotl: { hw: 15, hh: 11, bw: 8, eyeDx: 4.5, eyeY: 4, mouthWide: 4, inner: '#ffd0e0' },
 };
 
@@ -121,7 +126,7 @@ const RUFFED = new Set<SpeciesId>(['fox', 'raccoon', 'redpanda']);
 function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
   const base = ramp(hex(L.fur)), two = ramp(hex(L.fur2)), acc = ramp(hex(L.accent));
   const inner = ramp(hex(g.inner)), nose = ramp(hex(g.nose), { step: 0.08 });
-  const beak = ramp(0xf2a531), blush = ramp(0xf58aa0), tooth = ramp(0xfffdf5), panda = ramp(0x3a2420);
+  const water = ramp(0x5fc6e6), beak = ramp(L.species === 'parrot' ? 0x3a3440 : 0xf2a531), blush = ramp(0xf58aa0), tooth = ramp(0xfffdf5), panda = ramp(0x3a2420);
   const sp = L.species, pat = L.pattern;
   const seed = hash(hex(L.fur), hex(L.accent), 0, 3) * 1000;
   const eyeLo = g.neck + g.eyeY, eyeHi = eyeLo + 6;
@@ -138,6 +143,8 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
     if (tag === 'gill') return t.by > t.sy - 0.9 || t.bx < 0.6 || t.bx > t.sx - 0.6 ? 2 : 1;
     if (tag === 'ring') return Math.floor((t.z - 40 + j * 0.5) / 2.5) % 2 ? 2 : sp === 'redpanda' ? 1 : 0;
     if (tag === 'fin') return t.by + j * 0.4 > t.sy - 1.3 ? 2 : 0;
+    if (tag === 'crest') return 2;
+    if (sp === 'parrot' && (tag === 'feather' || tag === 'wing')) return t.by < t.sy * 0.45 ? 2 : Math.floor(t.bz) % 3 === 0 ? 1 : 0;
     if (tag === 'wing' || tag === 'feather') return Math.floor(t.by + (Math.floor(t.bz) % 2 ? 0.5 : 0)) % 2 === 0 && t.by < t.sy - 1 ? 2 : 0;
     if (sp === 'redpanda' && (limb || hand)) return 2;
     if (hand && pat === 'socks') return 2;
@@ -153,7 +160,9 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
       if (sp === 'owl' && Math.hypot(Math.abs(t.x) - g.eyeDx, t.y - (eyeLo + 3)) < 3.9 + j * 0.5) return 1;
       if ((sp === 'cat' || sp === 'bunny') && ax < 3.7 && y < g.neck + 4.6) return 1;
       if ((sp === 'frog' || sp === 'axolotl') && y < g.neck + 3.2) return 1;
-      if (sp === 'capybara' && y < g.neck + 3.4 && ax < 4.6) return 1;
+      if (sp === 'shark' && y < g.neck + 4.6) return 1;
+      if (sp === 'parrot' && y < g.neck + 4.4 && ax < 5.5) return 1;
+      if (sp === 'dog' && ax < 3 && y < g.neck + 6) return 1;
       if (sp === 'redpanda') {
         if (ax > 3.6 && y < g.neck + 5) return 1;
         if (ax > 2 && ax < 4.6 && y >= eyeHi + 0.2 && y < eyeHi + 1.5) return 1;
@@ -188,6 +197,38 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
     if (tag === 'beak' || tag === 'talon') return tone(beak, lvl(t, { noise: 0.2, speck: 0 }) + (tag === 'beak' && t.by < 1 ? -1 : 0));
     if (tag === 'tooth') return tone(tooth, t.face === 4 && t.bx > t.sx / 2 - 0.26 && t.bx < t.sx / 2 + 0.26 ? -2 : 0);
     if (tag === 'claw') return tone(two, 1.2);
+    if (tag === 'glass') {
+      const edge = t.u === 0 || t.v === 0 || t.u === t.w - 1 || t.v === t.h - 1;
+      const streak = (t.u - t.v + 400) % 11 < 2 && t.face !== 3;
+      return edge ? 0xe9fbff : streak ? 0xffffff : t.by < t.sy * 0.75 ? 0x7fd0ea : 0xd6f4fb;
+    }
+    if (tag === 'water') return tone(water, (t.face === 2 ? 0.8 : -0.2) + ((hx + hy * 2) % 9 === 0 ? 1.2 : 0));
+    if (tag === 'fish' || tag === 'fishfin') {
+      const sc = tag === 'fish' && t.face !== 3 && ((hx + (hy % 2)) % 3 === 0) && hy % 2 === 0;
+      return tone(tag === 'fish' ? acc : ramp(0xffb25c), 0.9 + lvl(t, { noise: 0.3 }) + (sc ? 0.9 : 0) + (tag === 'fishfin' && t.by % 1 < 0.5 ? -0.4 : 0));
+    }
+    if (tag === 'pebble') return tone(ramp(hash(hx >> 1, 0, hz >> 1, 4) > 0.5 ? 0xd9cbb2 : 0x8fa6b8), lvl(t, { noise: 0.6 }));
+    if (tag === 'weed') return tone(ramp(0x4fae5a), (t.by / t.sy) * 1.6 - 0.8);
+    if (tag === 'lamp') return tone(acc, 1.2 + (t.face === 2 ? 0.6 : 0));
+    if (sp === 'goldfish' && tag !== 'crest') {
+      const side = t.face !== 2 && t.face !== 3;
+      // robot body: brushed metal plates, seams, rivets, and a chest panel with buttons
+      let L = lvl(t, { noise: 0.15, speck: 0.1, rim: 1.3 }) + (hash(hx, Math.floor(hy / 4), hz, 3) - 0.5) * 0.35;
+      if (side && (t.v === Math.floor(t.h / 2) || t.u === Math.floor(t.w / 2))) L -= 0.9;
+      if (side && (t.u === 1 || t.u === t.w - 2) && (t.v === 1 || t.v === t.h - 2)) return tone(base, 1.8);
+      if (tag === 'body' && t.face === 4) {
+        const cx = t.bx - t.sx / 2, cy = t.by - t.sy / 2;
+        if (Math.abs(cx) < 3 && Math.abs(cy) < 2.2) {
+          if (Math.abs(cx) > 2.4 || Math.abs(cy) > 1.7) return tone(base, -2);
+          if (Math.hypot(cx + 1.3, cy) < 0.7) return 0xff5a4a;
+          if (Math.hypot(cx, cy) < 0.7) return 0x7fe08a;
+          if (Math.hypot(cx - 1.3, cy) < 0.7) return 0x5fb7ff;
+          return tone(ramp(0x2b3440), 0);
+        }
+      }
+      return tone(tag === 'metal2' ? acc : base, L);
+    }
+    if (sp === 'shark' && tag === 'head' && (t.face === 0 || t.face === 1) && t.y > g.neck + 3 && t.y < g.neck + 7.5 && Math.abs(t.z - (g.hz - 1)) < 2.5 && Math.floor((t.z - g.hz + 10) * 1.2) % 2 === 0) return tone(acc, -1);
     // strands: short vertical dashes of lighter and darker fur
     let L2 = lvl(t, FUR) + (hash(hx, Math.floor(hy / 3), hz, 17) - 0.5) * 0.85;
     const side = t.face !== 2 && t.face !== 3;
@@ -208,11 +249,11 @@ function furPainter(L: Look, g: ReturnType<typeof geoFor>): Painter {
         const d = Math.hypot((ex - 1.2) / 1.6, (ey + EH + 0.9) / 0.9);
         if (d < 0.8 || (d < 1.15 && (hx + hy) % 2 === 0)) return tone(blush, 0.2 + (d < 0.45 ? 0.5 : 0));
       }
-      if (Math.abs(ex + 0.6) < 1.8 && ey > EH + 0.5 && ey < EH + 1.2 && sp !== 'owl' && sp !== 'frog' && sp !== 'axolotl' && sp !== 'capybara') L2 -= 1.5;
+      if (Math.abs(ex + 0.6) < 1.8 && ey > EH + 0.5 && ey < EH + 1.2 && sp !== 'owl' && sp !== 'frog' && sp !== 'axolotl' && sp !== 'shark' && sp !== 'goldfish' && sp !== 'parrot') L2 -= 1.5;
       // a soft dark socket around the eyes gives the face depth
       if (Math.abs(ex) < EW + 0.6 && Math.abs(ey) < EH + 0.6 && sp !== 'frog') L2 -= 0.55;
       if (sp === 'frog' && Math.abs(Math.abs(t.x) - 1.5) < 0.55 && Math.abs(t.y - (g.neck + 5.6)) < 0.55) return tone(base, -2.6);
-      if (sp === 'capybara' && Math.abs(Math.abs(t.x) - 1.2) < 0.5 && Math.abs(t.y - (g.neck + 4.2)) < 0.5) return tone(nose, -1);
+      if (sp === 'shark' && Math.abs(t.x) > g.hw / 2 - 0.1) { /* side faces handled below */ }
     }
     const m = mark(t, j);
     if (tag === 'snout' && t.face === 4 && Math.abs(t.by - 1.3) < 0.5 && (t.bx < 1.6 || t.bx > t.sx - 1.6) && (hx % 2 === 0)) return tone(two, -2.4);
@@ -268,7 +309,7 @@ function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest 
   if (bare) P.add('body', b(0, g.legH + 1, g.bd / 2 + 0.3, g.bw - 4, g.bh - 5, 0.8, 'body', { skip: 'n' }));
   const ax = g.bw / 2 + g.limb / 2 - 0.5, lx = g.bw / 2 - g.limb / 2 - 0.5;
   both((sd, bn) => {
-    if (s === 'owl') {
+    if (s === 'owl' || s === 'parrot') {
       // layered wing: three overlapping rows of flight feathers
       const wx = sd * (g.bw / 2 + 0.6);
       P.add(bn('arm'), b(wx, g.legH + 3, 0, 2, g.bh - 2.5, 5, 'wing'), b(wx + sd * 0.5, g.legH + 1.4, -0.4, 1.4, 4, 4.4, 'feather'), b(wx + sd * 0.8, g.legH + 0.2, -1, 1, 3, 3.4, 'feather'));
@@ -282,7 +323,20 @@ function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest 
   });
 
   // ---- head
-  round('head', 'head', 0, n, g.hz, g.hw, g.hh, g.hd);
+  if (s === 'goldfish') {
+    const m = (x: number, y: number, z: number, w: number, h: number, d: number, tag = 'metal') => b(x, y, z, w, h, d, tag);
+    P.add('head', m(0, n, g.hz, g.hw + 1, 1.6, g.hd + 1), m(0, n + g.hh - 1, g.hz, g.hw + 0.6, 1.4, g.hd + 0.6, 'metal2'));
+    for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) P.add('head', m(x * (g.hw / 2), n + 1.4, g.hz + z * (g.hd / 2), 1, g.hh - 2.4, 1));
+    P.add('head', { ...b(0, n + 1.6, g.hz, g.hw - 0.4, g.hh - 2.8, g.hd - 0.4, 'glass'), glass: true });
+    // the pilot: a goldfish swimming in the tank, facing out
+    const fy = n + 3.6, fz = g.hz + 0.6;
+    P.add('head', b(0, fy, fz, 5, 4, 7.6, 'fish'), b(0, fy + 0.6, fz + 4, 3.6, 2.8, 0.8, 'fish'), b(0, fy + 1.4, fz - 5, 0.8, 4.2, 3, 'fishfin'), b(0, fy + 4, fz - 0.6, 0.8, 1.4, 3.4, 'fishfin'));
+    both((sd) => P.add('head', { ...b(sd * 3, fy + 0.4, fz + 0.6, 1.8, 0.6, 2, 'fishfin'), rot: [0, 0, sd * 30] }));
+    for (let i = 0; i < 6; i++) P.add('head', b(-5 + i * 2 + (i % 2) * 0.5, n + 1.6, g.hz - 4 + (i % 3) * 3, 1.6, 0.9, 1.6, 'pebble'));
+    P.add('head', b(-4.5, n + 1.6, g.hz - 3.5, 1, 4, 1, 'weed'), b(-3.8, n + 1.6, g.hz - 4.4, 1, 3, 1, 'weed'));
+    // antenna with a warm lamp
+    P.add('head', m(0, n + g.hh + 0.4, g.hz - 2, 0.8, 3, 0.8), { ...b(0, n + g.hh + 3.4, g.hz - 2, 1.6, 1.6, 1.6, 'lamp'), glow: true });
+  } else round('head', 'head', 0, n, g.hz, g.hw, g.hh, g.hd);
   const snout = (w: number, h: number, d: number, noseW: number, noseH = 1.5) => {
     P.add('head', b(0, n + 1, g.hf + d / 2 - 0.5, w, h, d + 1, 'snout', { skip: 'n' }), b(0, n + 1.5, g.hf + d / 2, w - 1.4, h, d + 0.6, 'snout', { skip: 'n' }),
       b(0, n + 1 + h - noseH + 0.4, g.hf + d + 0.3, noseW, noseH, 1.2, 'nose', { skip: 'n' }), b(0, n + 1 + h - noseH + 0.8, g.hf + d + 0.2, noseW + 0.8, noseH - 0.8, 0.8, 'nose', { skip: 'n' }));
@@ -325,10 +379,20 @@ function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest 
       break;
     case 'bear': snout(6.4, 3.4, 2, 3, 1.8); both((sd) => P.add('head', b(sd * (g.hw / 2 - 0.1), n + 1.4, g.hz + 1, 1.2, 4, 5, 'head'))); break;
     case 'redpanda': snout(6, 3, 2, 2, 1.2); ruff(1.1); crest(); fluff(g.legH + g.bh - 4); break;
-    case 'capybara':
-      P.add('head', b(0, n + 0.6, g.hf + 0.4, g.hw - 3, 5.4, 1.4, 'head', { skip: 'n' }), b(0, n + 4.2, g.hf + 1, 4.4, 2, 1, 'nose', { skip: 'n' }));
-      both((sd) => P.add('head', b(sd * (g.hw / 2 - 0.1), n + 1.2, g.hz + 2, 1.2, 4, 6, 'head')));
+    case 'dog': snout(6, 3.2, 3, 2.4, 1.6); crest(); fluff(g.legH + g.bh - 4); P.add('head', b(0, n + 0.4, g.hf + 2.4, 1.6, 0.6, 0.6, 'tooth', { skip: 'n' })); break;
+    case 'parrot':
+      // hooked beak: a thick upper bill curling down over a small lower one
+      P.add('head', b(0, n + 3, g.hf + 1, 3, 3, 2, 'beak', { skip: 'n' }), b(0, n + 1.6, g.hf + 2.2, 2.2, 2.2, 1.4, 'beak'), b(0, n + 1.2, g.hf + 0.8, 2, 1.4, 1.4, 'beak'));
+      for (const [x, h, r] of [[-1.2, 4, -14], [0.4, 5.4, -4], [1.8, 3.6, 10]] as const) P.add('head', { ...b(x, n + g.hh - 0.5, g.hz - 1, 1.4, h, 2, 'crest'), rot: [-18, 0, r], pivot: [x, n + g.hh - 0.5, g.hz - 1] });
+      fluff(g.legH + g.bh - 3.6);
       break;
+    case 'shark':
+      // dorsal fin on top of the head, and pale snout shelf
+      P.add('head', { ...b(0, n + g.hh - 0.6, g.hz - 1.5, 1.6, 3.4, 5, 'fin'), rot: [-22, 0, 0], pivot: [0, n + g.hh, g.hz] }, { ...b(0, n + g.hh + 2.2, g.hz - 3.4, 1.2, 2.4, 2.6, 'fin'), rot: [-34, 0, 0], pivot: [0, n + g.hh, g.hz] });
+      P.add('head', b(0, n + 4.6, g.hf + 0.5, g.hw - 5, 2.4, 1.4, 'head', { skip: 'n' }), b(0, n + 5.4, g.hf + 1.2, 1.4, 0.8, 0.6, 'nose', { skip: 'n' }));
+      both((sd) => P.add('body', { ...b(sd * (g.bw / 2 + 0.6), g.legH + 2, -0.5, 1, 3.4, 4, 'fin'), rot: [0, 0, sd * 20] }));
+      break;
+    case 'goldfish': both((sd) => P.add('body', b(sd * (g.bw / 2 - 1.2), g.legH + g.bh - 1, -1, 2.4, 1, 2.4, 'metal2'))); break;
     case 'axolotl':
       both((sd) => P.add('head', b(sd * (g.hw / 2 - 0.1), n + 1.4, g.hz + 1, 1.2, 4.4, 5, 'head')));
       P.add('head', b(0, n + g.hh - 0.2, g.hz - 1, 2, 1.4, 6, 'fin', { skip: 'd' }));
@@ -364,7 +428,10 @@ function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest 
       case 'owl':
         spike(e, 'earTip', x - sd, ey - 0.4, g.hz, 4, 2.4, [-74, sd * 10, 0]);
         rest[e] = [0, 0, -sd * 22]; break;
-      case 'capybara': P.add(e, b(sd * 4.5, ey - 0.4, g.hz - 3, 2.2, 2, 2, 'ear'), b(sd * 4.5, ey + 1.6, g.hz - 3, 1.4, 0.8, 1.6, 'ear')); break;
+      case 'dog':
+        // floppy ears hinged at the top of the head, hanging past the cheeks
+        P.add(e, b(sd * (g.hw / 2 + 0.9), ey - 6.6, g.hz + 0.5, 1.8, 7.2, 4.6, 'ear'), b(sd * (g.hw / 2 + 0.9), ey - 7.6, g.hz + 0.5, 1.6, 1.2, 3.6, 'earTip'), b(sd * (g.hw / 2 - 0.6), ey - 0.4, g.hz + 0.5, 2.4, 1.6, 4.6, 'ear'));
+        rest[e] = [0, 0, sd * 8]; break;
       case 'axolotl': {
         // feathery gills: three stalks, each fringed with a row of nubs
         const gx = sd * (g.hw / 2 + 1.6);
@@ -403,6 +470,17 @@ function species(P: AnimalParts, fur: Painter, look: Look, bare: boolean): Rest 
       P.add('tail2', b(0, ty - 0.4, tz - 15.4, 5, 5, 2.4, 'ring'), b(0, ty + 0.4, tz - 17, 3, 3, 1.4, 'ring'));
       rest.tail = [24, 0, 0]; rest.tail2 = [16, 0, 0]; break;
     case 'bear': round('tail', 'tail', 0, ty, tz - 1, 3.4, 3.4, 2.4); break;
+    case 'dog':
+      P.add('tail', b(0, ty + 0.4, tz - 2.5, 2.4, 2.4, 5, 'tail'));
+      P.add('tail2', b(0, ty + 0.4, tz - 7.4, 2.6, 2.6, 4, 'tail'), b(0, ty + 0.6, tz - 10, 2, 2, 2, 'tailTip'));
+      rest.tail = [58, 0, 0]; rest.tail2 = [30, 0, 0]; break;
+    case 'parrot':
+      for (const k of [-1, 0, 1]) P.add('tail', { ...b(k * 1.6, ty - 1, tz - 4, 1.6, 1, 8 - Math.abs(k) * 2, 'feather'), rot: [0, k * 8, 0], pivot: [0, ty, tz] });
+      rest.tail = [-30, 0, 0]; break;
+    case 'shark':
+      P.add('tail', b(0, ty, tz - 3, 4, 4, 6, 'tail'));
+      P.add('tail2', b(0, ty + 0.6, tz - 7.6, 2.6, 2.6, 3.4, 'tail'), { ...b(0, ty + 1, tz - 10, 1.2, 6, 2.4, 'fin'), rot: [-30, 0, 0], pivot: [0, ty + 1.6, tz - 9] }, { ...b(0, ty - 2.6, tz - 9.6, 1.2, 3.6, 2, 'fin'), rot: [34, 0, 0], pivot: [0, ty + 1, tz - 9] });
+      rest.tail = [6, 0, 0]; break;
     case 'owl': for (const k of [-1, 0, 1]) P.add('tail', { ...b(k * 2, ty - 1, tz - 2.4, 2.2, 1.4, 4.6 - Math.abs(k), 'feather'), rot: [0, k * 14, 0], pivot: [0, ty, tz] }); rest.tail = [-18, 0, 0]; break;
     case 'axolotl':
       P.add('tail', b(0, ty - 1, tz - 3, 2, 5, 6, 'tail'), b(0, ty + 4, tz - 3, 1, 1.6, 5.4, 'fin', { skip: 'd' }));
@@ -435,7 +513,7 @@ export function buildAnimal(look: Look, outfit: Outfit = {}): Animal {
 
   // face overlays: tiny planes a hair in front of the head so frames can swap without rebuilding
   const iris = hex(look.eye), [, iC, iH] = toLch(iris);
-  const lineInk = look.species === 'bear' || look.species === 'capybara' ? 0x241a18 : fromLch(0.2, 0.04, toLch(hex(look.accent))[2]);
+  const lineInk = look.species === 'bear' || look.species === 'goldfish' ? 0x241a18 : fromLch(0.2, 0.04, toLch(hex(look.accent))[2]);
   const eyePal = { K: fromLch(0.17, Math.min(0.04, iC), iH), J: fromLch(0.36, Math.min(0.12, iC), iH), P: 0x16121b, I: iris, i: adjust(iris, 0.13, 0.85), W: 0xffffff, S: 0xfdfdfd, H: 0xf0507a, Y: 0xffd84a };
   const framesL = EYE_FRAMES.map((f) => (f === 'open' ? OPEN[look.eyeStyle] : EYE_ART[f].rows));
   const framesR = EYE_FRAMES.map((f) => (f === 'open' ? (look.eyeStyle === 'sharp' ? flip(OPEN.sharp) : OPEN[look.eyeStyle]) : EYE_ART[f].mirror ? flip(EYE_ART[f].rows) : EYE_ART[f].rows));
@@ -448,12 +526,13 @@ export function buildAnimal(look: Look, outfit: Outfit = {}): Animal {
     return m;
   };
   const ey = g.neck + g.eyeY + 3;
-  const eyeL = mk(artTexture(framesL, eyePal), 5 * EYE, 6 * EYE, -g.eyeDx, ey, g.hf + 0.06);
-  const eyeR = mk(artTexture(framesR, eyePal), 5 * EYE, 6 * EYE, g.eyeDx, ey, g.hf + 0.06);
+  const es = g.eyeS ?? EYE, fz = g.faceZ != null ? g.hz + g.faceZ : g.hf + 0.06;
+  const eyeL = mk(artTexture(framesL, eyePal), 5 * es, 6 * es, -g.eyeDx, ey, fz);
+  const eyeR = mk(artTexture(framesR, eyePal), 5 * es, 6 * es, g.eyeDx, ey, fz);
   let mouthMesh: THREE.Mesh | null = null;
   if (g.mouth) {
     const mouthPal = { K: lineInk, R: 0x7a2c3a, T: 0xf07a8c, W: 0xffffff };
-    mouthMesh = mk(artTexture(MOUTH_FRAMES.map((f) => MOUTH_ART[f]), mouthPal, g.mouthWide * DENS), 5 + g.mouthWide, 3, 0, g.neck + g.mouthY + 1.5, g.hf + g.mouthZ + (g.mouthZ ? 0.56 : 0.06));
+    mouthMesh = mk(artTexture(MOUTH_FRAMES.map((f) => MOUTH_ART[f]), mouthPal, g.mouthWide * DENS), (5 + g.mouthWide) * (g.mouthS ?? 1), 3 * (g.mouthS ?? 1), 0, g.neck + g.mouthY + 1.5, g.faceZ != null ? fz : g.hf + g.mouthZ + (g.mouthZ ? 0.56 : 0.06));
   }
   const setFrame = (m: THREE.Mesh, i: number, n: number) => { ((m.material as THREE.MeshLambertMaterial).map as THREE.Texture).offset.x = i / n; };
   const animal: Animal = {

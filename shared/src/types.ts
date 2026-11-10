@@ -1,6 +1,6 @@
 // Core data model shared by the web app, the desktop pet and the server.
 
-export const SPECIES = ['fox', 'cat', 'bunny', 'raccoon', 'frog', 'owl', 'bear', 'redpanda', 'capybara', 'axolotl'] as const;
+export const SPECIES = ['cat', 'dog', 'axolotl', 'fox', 'bunny', 'raccoon', 'frog', 'owl', 'bear', 'redpanda', 'parrot', 'shark', 'goldfish'] as const;
 export type SpeciesId = (typeof SPECIES)[number];
 
 export type EyeStyle = 'round' | 'sparkle' | 'sleepy' | 'sharp' | 'dot';

@@ -162,14 +162,14 @@ describe('a plain reply', () => {
 
   test('the persona follows the active sidekick and its species', async () => {
     const state = schoolState();
-    state.sidekicks.push({ id: 'sk2', name: 'Yuzu', look: { species: 'capybara', ...SPECIES_INFO.capybara.look }, outfit: {} });
+    state.sidekicks.push({ id: 'sk2', name: 'Yuzu', look: { species: 'shark', ...SPECIES_INFO.shark.look }, outfit: {} });
     state.active = 'sk2';
     state.owner.name = '';
     const { h, ai, token } = await setup([say('it is fine. we do one.')], { state });
     await h.chat(token, 'hi');
     const persona: string = ai.requests[0].body.system[1].text;
-    expect(persona).toContain('Your name is Yuzu. You are a capybara.');
-    expect(persona).toContain(SPECIES_INFO.capybara.speech);
+    expect(persona).toContain('Your name is Yuzu. You are a shark.');
+    expect(persona).toContain(SPECIES_INFO.shark.speech);
     expect(persona).toContain('has not told you their name');
   });
 

@@ -18,7 +18,7 @@ function animal(name: string, look: Look, outfit: Outfit = {}, eyes: EyeFrame = 
 export async function sheet(name: string, q: URLSearchParams): Promise<SheetItem[]> {
   if (name === 'animals') {
     const only = q.get('only')?.split(',');
-    return SPECIES.filter((s) => !only || only.includes(s)).map((s) => animal(s, lookOf(s)));
+    return SPECIES.filter((s) => !only || only.includes(s)).map((s) => animal(s, lookOf(s), q.has('bare') ? {} : SPECIES_INFO[s].outfit));
   }
   if (name === 'one') return [animal('one', lookOf((q.get('s') ?? 'fox') as SpeciesId), JSON.parse(q.get('o') ?? '{}'))];
   if (name === 'outfits') {
@@ -31,7 +31,7 @@ export async function sheet(name: string, q: URLSearchParams): Promise<SheetItem
       ['owl', { body: 'blazer_navy', head: 'gradcap', face: 'glasses_gold' }],
       ['bear', { body: 'overalls', head: 'flowercrown', neck: 'scarf_red' }, 'happy'],
       ['redpanda', { body: 'sweater_berry', head: 'beret', face: 'glasses_round' }, 'star'],
-      ['capybara', { head: 'yuzu', neck: 'bell', back: 'wings' }],
+      ['shark', { head: 'yuzu', neck: 'bell', back: 'wings' }],
       ['axolotl', { body: 'tunic', head: 'crown', back: 'cape_hero' }, 'heart', 'o'],
     ];
     return fits.map(([s, o, e, m]) => animal(s, lookOf(s), o, e, m));
